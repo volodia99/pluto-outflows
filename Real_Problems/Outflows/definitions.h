@@ -7,7 +7,7 @@
 #define  RECONSTRUCTION          PARABOLIC
 #define  TIME_STEPPING           RK3
 #define  DIMENSIONAL_SPLITTING   NO
-#define  NTRACER                 1
+#define  NTRACER                 2
 #define  USER_DEF_PARAMETERS     39
 #define  USER_DEF_CONSTANTS      4
 

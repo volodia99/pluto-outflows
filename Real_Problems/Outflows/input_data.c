@@ -430,8 +430,14 @@ void InputDataInterpolate (double *vs, double x1, double x2, double x3)
 
 /* AYW -- 2012-11-29 12:33 JST
  * My version. */
-    if (id_geom == GEOMETRY) {
-        /* same coordinate system: nothing to do */
+    if (id_geom == CARTESIAN) {
+        double xc1, xc2, xc3;
+        xc1 = CART1(x1, x2, x3);
+        xc2 = CART2(x1, x2, x3);
+        xc3 = CART3(x1, x2, x3);
+        x1 = xc1;
+        x2 = xc2;
+        x3 = xc3;
     }
 
     else if (id_geom == CYLINDRICAL) {
@@ -464,10 +470,6 @@ void InputDataInterpolate (double *vs, double x1, double x2, double x3)
         x3 = phi;
     }
 
-    else {
-        print1("! InputDataInterpolate: invalid or unsupported coordinate transformation.\n");
-        QUIT_PLUTO(1);
-    }
 /* -- AYW */
 
 //
@@ -693,15 +695,11 @@ void InputDataInterpolate (double *vs, double x1, double x2, double x3)
 /* AYW -- 2012-11-29 11:53 JST 
  * Do geometric velocity conversions here. Convert from
  * data geometry back to PLUTO geometry 
- * NOTE: Untested.
+ * NOTE: Only partly tested (Cartesian to Cylindrical).
 */
     if (do_vel) {
 
-        if (id_geom == GEOMETRY) {
-            /* same coordinate system: nothing to do */
-        }
-
-        else if (id_geom == CARTESIAN) {
+        if (id_geom == CARTESIAN) {
             double v1, v2, v3;
             v1 = vs[VX1];
             v2 = vs[VX2];
