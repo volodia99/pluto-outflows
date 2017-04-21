@@ -115,10 +115,11 @@ void GetFractalData(double *cloud, const double x1, const double x2, const doubl
 
     /* Cloud data is in cartesian coordiantes
        InputDataInterpolate */
-    x = CART1(x1, x2, x3);
-    y = CART2(x1, x2, x3);
-    z = CART3(x1, x2, x3);
-    InputDataInterpolate(cloud, x, y, z);
+//    x = CART1(x1, x2, x3);
+//    y = CART2(x1, x2, x3);
+//    z = CART3(x1, x2, x3);
+//    InputDataInterpolate(cloud, x, y, z);
+    InputDataInterpolate(cloud, x1, x2, x3);
 
 }
 
@@ -465,7 +466,7 @@ void CloudVelocity(double *cloud, double *halo,
 
         /* Apply change to component parallel to flow axis (assumed to be in km/s).
          * Can't use FLOWAXIS macro though because we are in transformed coords. */
-        SELECT(vcart1, vcart2, vcart3) += g_inputParam[PAR_WVPL] * ini_code[PAR_WVPL];
+        D_SELECT(vcart1, vcart2, vcart3) += g_inputParam[PAR_WVPL] * ini_code[PAR_WVPL];
 
         /* Convert velocity vectors back to the current coordinate system */
         EXPAND(v1 = VCART_1(xcart1, xcart2, xcart3, vcart1, vcart2, vcart3);,
