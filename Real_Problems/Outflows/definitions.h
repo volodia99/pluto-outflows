@@ -1,9 +1,9 @@
-#define  PHYSICS                 HD
+#define  PHYSICS                 RHD
 #define  DIMENSIONS              2
 #define  COMPONENTS              2
 #define  GEOMETRY                SPHERICAL
-#define  BODY_FORCE              VECTOR
-#define  COOLING                 TABULATED
+#define  BODY_FORCE              POTENTIAL
+#define  COOLING                 NO
 #define  RECONSTRUCTION          PARABOLIC
 #define  TIME_STEPPING           RK3
 #define  DIMENSIONAL_SPLITTING   NO
@@ -18,7 +18,7 @@
 #define  THERMAL_CONDUCTION      NO
 #define  VISCOSITY               NO
 #define  ROTATING_FRAME          NO
-#define  RECONSTRUCT_4VEL        NO
+#define  RECONSTRUCT_4VEL        YES
 
 /* -- user-defined parameters (labels) -- */
 

@@ -377,6 +377,7 @@ void InputDataRead (char *data_fname, char *endianity)
                         }
                         if (swap_endian) SWAP_VAR(uflt);
                         Vin[nv][k][j][i] = uflt;
+                        double blqblq = 3;
                     }
                 }
             }

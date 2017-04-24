@@ -1,6 +1,6 @@
 /* -- Own definitions choices -- */
 
-#define NOZZLE                      NOZZLE_UFO
+#define NOZZLE                      NOZZLE_JET
 #define NOZZLE_FILL                 NF_PRIMITIVE
 #define NOZZLE_CAP                  YES
 
@@ -24,7 +24,7 @@
 #define CLOUD_VELOCITY              NONE
 #define CLOUD_SCALE                 CS_VELOCITY_DISPERSION
 #define CLOUD_EXTRACT               NONE
-
+#define CUBE_ENDIANNESS             "little"
 
 #define MU_CALC                     MU_ANALYTIC
 /* --- Not usually changed ---- */

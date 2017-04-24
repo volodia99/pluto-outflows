@@ -5,8 +5,8 @@ project(PLUTO)
 #_______________________________________________________________________________________________________________________
 # Set these
 
-set(PLUTO_SOURCE_DIR            /Users/ayw/dev/PLUTO)
-#set(PLUTO_SOURCE_DIR            C:/Users/Utilisateur/Desktop/PLUTO)
+#set(PLUTO_SOURCE_DIR            /Users/ayw/dev/PLUTO)
+set(PLUTO_SOURCE_DIR            C:/Users/Utilisateur/Desktop/PLUTO)
 set(PROBLEM_TYPE                Real)
 set(PROBLEM                     Outflows)
 
@@ -16,8 +16,8 @@ set(WITH_HDF5                   ON)
 set(WITH_ASYNC_IO               OFF)
 set(WITH_CHOMBO                 OFF)
 
-set(WITH_PHYSICS                HD)
-set(WITH_COOLING                TABULATED)
+set(WITH_PHYSICS                RHD)
+set(WITH_COOLING                NONE)
 set(WITH_INTERPOLATION          PARABOLIC)
 set(WITH_TIME_STEPPING          RK3)
 
@@ -39,7 +39,7 @@ set(WITH_GLM                    OFF)
 
 # -- Library paths --
 
-set(HDF5_PATH ${PLUTO_SOURCE_DIR}/Lib)
+set(HDF5_PATH C:/cygwin64/home/Utilisateur/hdf5)
 
 #_______________________________________________________________________________________________________________________
 # Main bit
@@ -96,7 +96,7 @@ if (PROBLEM STREQUAL Outflows)
 #     TODO: Automate necessary file link to run simulations
     # Executable output location
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUTO_SOURCE_DIR}/Lab/Accretion)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/Accretion/wind)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY C:/Users/Utilisateur/Desktop/PLUTO/Lab/run_accretion/halo_clouds/sph_halo_clouds)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/IC5063)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/Outflow)
 
@@ -319,17 +319,17 @@ if (WITH_PARALLEL)
 
     # ----
 
-    set(CMAKE_C_COMPILER /usr/local/bin/mpicc)
-    set(CMAKE_CXX_COMPILER /usr/local/bin/mpicxx)
+#    set(CMAKE_C_COMPILER /usr/local/bin/mpicc)
+#    set(CMAKE_CXX_COMPILER /usr/local/bin/mpicxx)
 
     # OR (https://cmake.org/pipermail/cmake/2015-April/060252.html)
 
-#    find_package(MPI REQUIRED)
-#    set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-#    set(CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} ${MPI_LINK_FLAGS})
-#    set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-#    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
-#    set(LINK_LIBRARIES ${LINK_LIBRARIES} ${MPI_LIBRARIES})
+        find_package(MPI REQUIRED)
+        set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+        set(CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} ${MPI_LINK_FLAGS})
+        set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+        set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+        set(LINK_LIBRARIES ${LINK_LIBRARIES} ${MPI_LIBRARIES})
 
     # ----
 
@@ -377,9 +377,9 @@ if (WITH_HDF5)
 
     if (WITH_PARALLEL)
         set(HDF5_PREFER_PARALLEL TRUE)
-        set(HDF5_ROOT ${HDF5_PATH}/hdf5-parallel)
+        set(HDF5_ROOT ${HDF5_PATH}/hdf5_parallel)
     else()
-        set(HDF5_ROOT ${HDF5_PATH}/hdf5-serial)
+        set(HDF5_ROOT ${HDF5_PATH}/hdf5_serial)
     endif ()
 
     find_package(HDF5 REQUIRED)
