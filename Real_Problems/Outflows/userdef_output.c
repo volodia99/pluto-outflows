@@ -20,57 +20,93 @@ void ComputeUserVar (const Data *d, Grid *grid)
   double ***prs, ***rho, ***vx1, ***vx2, ***vx3, dummy[NVAR];
   double mu, sp1, sp2, sp3;
   double *x1, *x2, *x3;
-#if RECONSTRUCT_4VEL == YES
   double ***v1, ***v2, ***v3;
+#if RECONSTRUCT_4VEL == YES
   double vel, speed, lorentz;
 #endif
+
+
+
+  double ***xs1, ***xs2, ***xs3;
+    double ***xc1, ***xc2, ***xc3;
+    D_EXPAND(xs1 = GetUserVar("xs1");,
+           xs2 = GetUserVar("xs2");,
+           xs3 = GetUserVar("xs3"););
+    D_EXPAND(xc1 = GetUserVar("xc1");,
+             xc2 = GetUserVar("xc2");,
+             xc3 = GetUserVar("xc3"););
+
+
 
   /* New variables - names must exist under uservar */
   te = GetUserVar("te");
   spd = GetUserVar("spd");
 
 /* Change to v instead of u = lorentz v */
-#if RECONSTRUCT_4VEL == YES
-  v1  = GetUserVar("v1");
-  v2  = GetUserVar("v2");
-  v3  = GetUserVar("v3");
-#endif
+  EXPAND(v1 = GetUserVar("v1");,
+         v2 = GetUserVar("v2");,
+         v3 = GetUserVar("v3"););
 
   /* State variables */
   rho = d->Vc[RHO];
   prs = d->Vc[PRS];
-  vx1 = d->Vc[VX1];
-  vx2 = d->Vc[VX2];
-  vx3 = d->Vc[VX3];
+  EXPAND(vx1 = d->Vc[VX1];,
+         vx2 = d->Vc[VX2];,
+         vx3 = d->Vc[VX3];);
 
   /* These are the geometrical central points */
-  //x1 = grid[IDIR].x;
-  //x2 = grid[JDIR].x;
-  //x3 = grid[KDIR].x;
+  x1 = grid[IDIR].x;
+  x2 = grid[JDIR].x;
+  x3 = grid[KDIR].x;
 
   /* These are the volumetric central points */
-  x1 = grid[IDIR].xgc;
-  x2 = grid[JDIR].xgc;
-  x3 = grid[KDIR].xgc;
+//  x1 = grid[IDIR].xgc;
+//  x2 = grid[JDIR].xgc;
+//  x3 = grid[KDIR].xgc;
 
   DOM_LOOP(k, j, i) {
 
-    /* Temperature */
-    for (nv = 0; nv < NVAR; nv++) dummy[nv] = d->Vc[nv][k][j][i];
-    mu = MeanMolecularWeight(dummy);
-    te[k][j][i] = TempIdealEOS(rho[k][j][i], prs[k][j][i], mu) * vn.temp_norm;
+              D_EXPAND(xc1[k][j][i] = CART1(x1[i], x2[j], x3[k]);,
+                       xc2[k][j][i] = CART2(x1[i], x2[j], x3[k]);,
+                       xc3[k][j][i] = CART3(x1[i], x2[j], x3[k]););
+              D_EXPAND(xs1[k][j][i] = x1[i];,
+                       xs2[k][j][i] = x2[j];,
+                       xs3[k][j][i] = x3[k];);
 
-    /* Speed */
-    sp1 = sp2 = sp3 = 0;
-    EXPAND(sp1 = vx1[k][j][i];,
-           sp2 = vx2[k][j][i];,
-           sp3 = vx3[k][j][i];);
-    spd[k][j][i] = VMAG(x1[i], x2[j], x3[k], sp1, sp2, sp3);
+        /* Temperature */
+        for (nv = 0; nv < NVAR; nv++) dummy[nv] = d->Vc[nv][k][j][i];
+        mu = MeanMolecularWeight(dummy);
+        te[k][j][i] = TempIdealEOS(rho[k][j][i], prs[k][j][i], mu) * vn.temp_norm;
+
+        /* Speed */
+        sp1 = sp2 = sp3 = 0;
+        EXPAND(sp1 = vx1[k][j][i];,
+               sp2 = vx2[k][j][i];,
+               sp3 = vx3[k][j][i];);
+        spd[k][j][i] = VMAG(x1[i], x2[j], x3[k], sp1, sp2, sp3);
+
+#if GEOMETRY == POLAR || GEOMETRY == SPHERICAL
+        /* This is useful in polar and spherical geometries, where the vectors are rotated. */
+
+        EXPAND(double csp1 = VCART1(x1[i], x2[j], x3[k], sp1, sp2, sp3);,
+               double csp2 = VCART2(x1[i], x2[j], x3[k], sp1, sp2, sp3);,
+               double csp3 = VCART3(x1[i], x2[j], x3[k], sp1, sp2, sp3););
+
+        EXPAND(sp1 = csp1;,
+               sp2 = csp2;,
+               sp3 = csp3;);
+
+#endif
+
+        EXPAND(v1[k][j][i] = sp1;,
+               v2[k][j][i] = sp2;,
+               v3[k][j][i] = sp3;);
 
 #if RECONSTRUCT_4VEL == YES
     /* speed at this point is gamma * vel.
      * Solve for vel. Then get gamma.
      * Note, c=1 if RECONSTRUCT_4VEL = YES. */
+
     speed = spd[k][j][i];
     if (speed > 0){
         vel = speed / sqrt(1 + speed * speed);
@@ -87,9 +123,12 @@ void ComputeUserVar (const Data *d, Grid *grid)
            v3[k][j][i] = sp3 / lorentz;);
 #endif
 
-  }
+      }
 
 }
+
+
+
 /* ************************************************************* */
 void ChangeDumpVar ()
 /* 
@@ -102,21 +141,12 @@ void ChangeDumpVar ()
   /* HDF5 output cannot be controlled yet. Everything is output.*/
 
   /* VTK output */
-#if RECONSTRUCT_4VEL
   EXPAND(SetDumpVar("v1",  VTK_OUTPUT, YES);,
          SetDumpVar("v2",  VTK_OUTPUT, YES);,
          SetDumpVar("v3",  VTK_OUTPUT, YES););
-  EXPAND(SetDumpVar("vx1",  VTK_OUTPUT, YES);,
-         SetDumpVar("vx2",  VTK_OUTPUT, YES);,
-         SetDumpVar("vx3",  VTK_OUTPUT, YES););
-#else
-  EXPAND(SetDumpVar("v1",  VTK_OUTPUT, NO);,
-         SetDumpVar("v2",  VTK_OUTPUT, NO);,
-         SetDumpVar("v3",  VTK_OUTPUT, NO););
-  EXPAND(SetDumpVar("vx1",  VTK_OUTPUT, YES);,
-         SetDumpVar("vx2",  VTK_OUTPUT, YES);,
-         SetDumpVar("vx3",  VTK_OUTPUT, YES););
-#endif
+  EXPAND(SetDumpVar("vx1",  VTK_OUTPUT, NO);,
+         SetDumpVar("vx2",  VTK_OUTPUT, NO);,
+         SetDumpVar("vx3",  VTK_OUTPUT, NO););
   SetDumpVar("prs",  VTK_OUTPUT, YES);
   SetDumpVar("tr1",  VTK_OUTPUT, YES);
 #if CLOUDS == YES
@@ -127,21 +157,12 @@ void ChangeDumpVar ()
 
 
   /* FLT output */
-#if RECONSTRUCT_4VEL
   EXPAND(SetDumpVar("v1",  FLT_OUTPUT, YES);,
          SetDumpVar("v2",  FLT_OUTPUT, YES);,
          SetDumpVar("v3",  FLT_OUTPUT, YES););
-  EXPAND(SetDumpVar("vx1",  FLT_OUTPUT, YES);,
-         SetDumpVar("vx2",  FLT_OUTPUT, YES);,
-         SetDumpVar("vx3",  FLT_OUTPUT, YES););
-#else
-  EXPAND(SetDumpVar("v1",  FLT_OUTPUT, NO);,
-         SetDumpVar("v2",  FLT_OUTPUT, NO);,
-         SetDumpVar("v3",  FLT_OUTPUT, NO););
-  EXPAND(SetDumpVar("vx1",  FLT_OUTPUT, YES);,
-         SetDumpVar("vx2",  FLT_OUTPUT, YES);,
-         SetDumpVar("vx3",  FLT_OUTPUT, YES););
-#endif
+  EXPAND(SetDumpVar("vx1",  FLT_OUTPUT, NO);,
+         SetDumpVar("vx2",  FLT_OUTPUT, NO);,
+         SetDumpVar("vx3",  FLT_OUTPUT, NO););
   SetDumpVar("prs",  FLT_OUTPUT, YES);
   SetDumpVar("tr1",  FLT_OUTPUT, YES);
 #if CLOUDS == YES
@@ -151,22 +172,29 @@ void ChangeDumpVar ()
   SetDumpVar("spd",  FLT_OUTPUT, YES);
 
 
+  /* FLT H5 output */
+  EXPAND(SetDumpVar("v1",  FLT_H5_OUTPUT, YES);,
+         SetDumpVar("v2",  FLT_H5_OUTPUT, YES);,
+         SetDumpVar("v3",  FLT_H5_OUTPUT, YES););
+  EXPAND(SetDumpVar("vx1",  FLT_H5_OUTPUT, YES);,
+         SetDumpVar("vx2",  FLT_H5_OUTPUT, YES);,
+         SetDumpVar("vx3",  FLT_H5_OUTPUT, YES););
+  SetDumpVar("prs",  FLT_H5_OUTPUT, YES);
+  SetDumpVar("tr1",  FLT_H5_OUTPUT, YES);
+#if CLOUDS == YES
+  SetDumpVar("tr2",  FLT_H5_OUTPUT, YES);
+#endif
+  SetDumpVar("te",  FLT_H5_OUTPUT, YES);
+  SetDumpVar("spd",  FLT_H5_OUTPUT, YES);
+
+
   /* PNG output */
-#if RECONSTRUCT_4VEL
   EXPAND(SetDumpVar("v1",  PNG_OUTPUT, YES);,
          SetDumpVar("v2",  PNG_OUTPUT, YES);,
          SetDumpVar("v3",  PNG_OUTPUT, YES););
-  EXPAND(SetDumpVar("vx1",  PNG_OUTPUT, YES);,
-         SetDumpVar("vx2",  PNG_OUTPUT, YES);,
-         SetDumpVar("vx3",  PNG_OUTPUT, YES););
-#else
-  EXPAND(SetDumpVar("v1",  PNG_OUTPUT, NO);,
-         SetDumpVar("v2",  PNG_OUTPUT, NO);,
-         SetDumpVar("v3",  PNG_OUTPUT, NO););
-  EXPAND(SetDumpVar("vx1",  PNG_OUTPUT, YES);,
-         SetDumpVar("vx2",  PNG_OUTPUT, YES);,
-         SetDumpVar("vx3",  PNG_OUTPUT, YES););
-#endif
+  EXPAND(SetDumpVar("vx1",  PNG_OUTPUT, NO);,
+         SetDumpVar("vx2",  PNG_OUTPUT, NO);,
+         SetDumpVar("vx3",  PNG_OUTPUT, NO););
   SetDumpVar("prs",  PNG_OUTPUT, YES);
   SetDumpVar("tr1",  PNG_OUTPUT, YES);
 #if CLOUDS == YES
