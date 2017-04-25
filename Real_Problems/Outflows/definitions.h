@@ -1,7 +1,7 @@
-#define  PHYSICS                 RHD
-#define  DIMENSIONS              2
-#define  COMPONENTS              2
-#define  GEOMETRY                SPHERICAL
+#define  PHYSICS                 HD
+#define  DIMENSIONS              3
+#define  COMPONENTS              3
+#define  GEOMETRY                CARTESIAN
 #define  BODY_FORCE              POTENTIAL
 #define  COOLING                 NO
 #define  RECONSTRUCTION          PARABOLIC
@@ -18,7 +18,7 @@
 #define  THERMAL_CONDUCTION      NO
 #define  VISCOSITY               NO
 #define  ROTATING_FRAME          NO
-#define  RECONSTRUCT_4VEL        YES
+#define  RECONSTRUCT_4VEL        NO
 
 /* -- user-defined parameters (labels) -- */
 

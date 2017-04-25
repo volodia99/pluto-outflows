@@ -16,7 +16,7 @@ set(WITH_HDF5                   ON)
 set(WITH_ASYNC_IO               OFF)
 set(WITH_CHOMBO                 OFF)
 
-set(WITH_PHYSICS                RHD)
+set(WITH_PHYSICS                HD)
 set(WITH_COOLING                NONE)
 set(WITH_INTERPOLATION          PARABOLIC)
 set(WITH_TIME_STEPPING          RK3)
@@ -96,7 +96,7 @@ if (PROBLEM STREQUAL Outflows)
 #     TODO: Automate necessary file link to run simulations
     # Executable output location
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUTO_SOURCE_DIR}/Lab/Accretion)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY C:/Users/Utilisateur/Desktop/PLUTO/Lab/run_accretion/halo_clouds/sph_halo_clouds)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY C:/Users/Utilisateur/Desktop/PLUTO/Lab/run_accretion/halo_clouds/3D_cart_halo_clouds_disk)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/IC5063)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/Outflow)
 

@@ -1,6 +1,6 @@
 /* -- Own definitions choices -- */
 
-#define NOZZLE                      NOZZLE_JET
+#define NOZZLE                      NOZZLE_UFO
 #define NOZZLE_FILL                 NF_PRIMITIVE
 #define NOZZLE_CAP                  YES
 
@@ -16,13 +16,13 @@
 
 #define GRAV_POTENTIAL              GRAV_DOUBLE_ISOTHERMAL
 
-#define CLOUDS                      NO
+#define CLOUDS                      YES
 #define CLOUD_REPEAT	            NO
 #define CLOUDS_MULTI   	            NO
 
-#define CLOUD_DENSITY               CD_HOMOGENEOUS
+#define CLOUD_DENSITY               CD_KEPLERIAN
 #define CLOUD_VELOCITY              NONE
-#define CLOUD_SCALE                 CS_VELOCITY_DISPERSION
+#define CLOUD_SCALE                 CS_SCALE_HEIGHT
 #define CLOUD_EXTRACT               NONE
 #define CUBE_ENDIANNESS             "little"
 
