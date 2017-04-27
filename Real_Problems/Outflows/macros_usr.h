@@ -230,7 +230,7 @@
 #define VCART2CYL3(x1, x2, x3, v1, v2, v3)  ( SELECT(\
       -sin(CART2POL2(x1, x2, x3))*(v1) + cos(CART2POL2(x1, x2, x3))*(v2),\
       0, \
-      -sin(CART2POL2(x1, x2, x3))*(v1) + cos(CART2POL2(x1, x2, x3))*(v2) )
+      -sin(CART2POL2(x1, x2, x3))*(v1) + cos(CART2POL2(x1, x2, x3))*(v2) ))
 #endif
 
 

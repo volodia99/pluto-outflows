@@ -1,7 +1,7 @@
 #define  PHYSICS                 HD
 #define  DIMENSIONS              2
-#define  COMPONENTS              2
-    #define  GEOMETRY            CYLINDRICAL
+#define  COMPONENTS              3
+#define  GEOMETRY                CYLINDRICAL
 #define  BODY_FORCE              POTENTIAL
 #define  COOLING                 NO
 #define  RECONSTRUCTION          PARABOLIC
@@ -82,4 +82,4 @@
 #define  LIMITER                MC_LIM
 #define  SHOW_TIME_STEPS        YES
 #define  CHAR_LIMITING          NO
-#define  PPM_ORDER              5
+#define  PPM_ORDER              4
