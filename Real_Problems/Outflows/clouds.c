@@ -402,8 +402,8 @@ void CloudVelocity(double *cloud, double *halo,
         BodyForceVector(cloud, gvec, x1, x2, x3);
 
         // TODO: Ask Miki-kun which is correct
-//        dphidr = -VPOL1(x1, x2, x3, gvec[IDIR], gvec[JDIR], gvec[KDIR]);
-        dphidr = -VSPH1(x1, x2, x3, gvec[IDIR], gvec[JDIR], gvec[KDIR]);
+        dphidr = -VPOL1(x1, x2, x3, gvec[IDIR], gvec[JDIR], gvec[KDIR]);
+//        dphidr = -VSPH1(x1, x2, x3, gvec[IDIR], gvec[JDIR], gvec[KDIR]);
 
         /* The angular (linear) velocity */
         vpol2 += ek * sqrt(r_cyl * dphidr);
