@@ -85,5 +85,3 @@ np.savetxt(fh, np.atleast_1d(nx3), '%d')
 np.savetxt(fh, x3_arr, fmt)
 
 fh.close()
-
-
