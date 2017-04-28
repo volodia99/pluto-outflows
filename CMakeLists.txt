@@ -17,7 +17,7 @@ set(WITH_ASYNC_IO               OFF)
 set(WITH_CHOMBO                 OFF)
 
 set(WITH_PHYSICS                HD)
-set(WITH_COOLING                NONE)
+set(WITH_COOLING                TABULATED)
 set(WITH_INTERPOLATION          PARABOLIC)
 set(WITH_TIME_STEPPING          RK3)
 
@@ -139,7 +139,7 @@ if (PROBLEM STREQUAL Outflows)
             ${PROBLEM_DIR}/input_data.c
             ${PROBLEM_DIR}/jet_domain.c
             ${PROBLEM_DIR}/main.c
-            ${PROBLEM_DIR}/mappers3D.c       # Not confident about the modifications inside
+#            ${PROBLEM_DIR}/mappers3D.c       # Not confident about the modifications inside
             ${PROBLEM_DIR}/set_grid.c
             ${PROBLEM_DIR}/startup.c
             ${PROBLEM_DIR}/userdef_output.c
@@ -258,7 +258,7 @@ set(SOURCE_FILES  ${SOURCE_FILES}
         #${SOURCE_DIR}/jet_domain.c                       # Override
         ${SOURCE_DIR}/macros.h
         #${SOURCE_DIR}/main.c                             # Override
-#        ${SOURCE_DIR}/mappers3D.c                         # Override
+        ${SOURCE_DIR}/mappers3D.c                         # Override
 #        ${SOURCE_DIR}/mean_mol_weight.c                  # Override
         ${SOURCE_DIR}/parabolic_flux.c
         ${SOURCE_DIR}/parabolic_rhs.c

@@ -3,7 +3,7 @@
 #define  COMPONENTS              3
 #define  GEOMETRY                CYLINDRICAL
 #define  BODY_FORCE              POTENTIAL
-#define  COOLING                 NO
+#define  COOLING                 TABULATED
 #define  RECONSTRUCTION          PARABOLIC
 #define  TIME_STEPPING           RK3
 #define  DIMENSIONAL_SPLITTING   NO
