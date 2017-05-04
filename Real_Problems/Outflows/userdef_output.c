@@ -16,8 +16,9 @@ void ComputeUserVar (const Data *d, Grid *grid)
  ***************************************************************** */
 {
   int i, j, k, nv;
-  double ***te, ***spd;
+  double ***te, ***spd, ***lmd;
   double ***prs, ***rho, ***vx1, ***vx2, ***vx3, dummy[NVAR];
+  double rhs[NVAR];
   double mu, sp1, sp2, sp3;
   double *x1, *x2, *x3;
   double ***v1, ***v2, ***v3;
@@ -42,6 +43,7 @@ void ComputeUserVar (const Data *d, Grid *grid)
   /* New variables - names must exist under uservar */
   te = GetUserVar("te");
   spd = GetUserVar("spd");
+  lmd = GetUserVar("lmd");
 
 /* Change to v instead of u = lorentz v */
   EXPAND(v1 = GetUserVar("v1");,
@@ -82,6 +84,11 @@ void ComputeUserVar (const Data *d, Grid *grid)
                sp2 = vx2[k][j][i];,
                sp3 = vx3[k][j][i];);
         spd[k][j][i] = VMAG(x1[i], x2[j], x3[k], sp1, sp2, sp3);
+
+        /* Cooling rate */
+        dummy[RHOE] /= g_gamma - 1.;
+        Radiat(dummy, rhs);
+        lmd[k][j][i] = rhs[RHOE];
 
 #if GEOMETRY == POLAR || GEOMETRY == SPHERICAL
         /* This is useful in polar and spherical geometries, where the vectors are rotated. */
@@ -152,6 +159,7 @@ void ChangeDumpVar ()
 #endif
   SetDumpVar("te",  VTK_OUTPUT, YES);
   SetDumpVar("spd",  VTK_OUTPUT, YES);
+  SetDumpVar("lmd",  VTK_OUTPUT, YES);
 
 
   /* FLT output */
@@ -168,6 +176,7 @@ void ChangeDumpVar ()
 #endif
   SetDumpVar("te",  FLT_OUTPUT, YES);
   SetDumpVar("spd",  FLT_OUTPUT, YES);
+  SetDumpVar("lmd",  FLT_OUTPUT, YES);
 
 
   /* FLT H5 output */
@@ -184,6 +193,7 @@ void ChangeDumpVar ()
 #endif
   SetDumpVar("te",  FLT_H5_OUTPUT, YES);
   SetDumpVar("spd",  FLT_H5_OUTPUT, YES);
+  SetDumpVar("lmd",  FLT_H5_OUTPUT, YES);
 
 
   /* PNG output */
@@ -200,6 +210,7 @@ void ChangeDumpVar ()
 #endif
   SetDumpVar("te",  PNG_OUTPUT, YES);
   SetDumpVar("spd",  PNG_OUTPUT, YES);
+  SetDumpVar("lmd",  PNG_OUTPUT, YES);
 
 
 
