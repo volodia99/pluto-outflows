@@ -7,8 +7,7 @@
 #include "accretion.h"
 #include "grid_geometry.h"
 #include "idealEOS.h"
-#include "outflow.h"
-#include "init_tools.h"
+#include "interpolation.h"
 
 
 /* Global struct for accretion */
@@ -122,6 +121,132 @@ int InSinkRegion(const double x1, const double x2, const double x3) {
 }
 
 
+/* ************************************************ */
+void RandomSamplingSphericalSurface(const int npoints, const double radius, double *x1, double *x2, double *x3) {
+/*!
+ * Return random points on surface of sphere.
+ * Use method by Marsaglia (1972), see:
+ * http://mathworld.wolfram.com/SpherePointPicking.html
+ *
+ ************************************************** */
+
+    int i, j, k;
+
+
+    int lcount = 0;
+
+    double r2, scrh;
+    double cx1, cx2, cx3;
+    double rad_sc = sqrt(radius);
+
+    while (lcount < npoints) {
+        double rvar1 = RandomNumber(-rad_sc, rad_sc);
+        double rvar2 = RandomNumber(-rad_sc, rad_sc);
+
+        // Rejection
+        r2 = rvar1 * rvar1 + rvar2 * rvar2;
+        if (r2 < rad_sc * rad_sc) {
+
+            // Cartesian coordinates of points on sphere
+            scrh = sqrt(rad_sc * rad_sc - rvar1 * rvar1 - rvar2 * rvar2);
+            cx1 = 2. * rvar1 * scrh;
+            cx2 = 2. * rvar2 * scrh;
+            cx3 = rad_sc * rad_sc - 2. * r2;
+
+            D_EXPAND(x1[lcount] = CART_1(cx1, cx2, cx3);,
+                     x2[lcount] = CART_2(cx1, cx2, cx3);,
+                     x3[lcount] = CART_3(cx1, cx2, cx3););
+
+            lcount ++;
+        }
+
+    }
+
+}
+
+// TODO: Special case for spherical cases
+// NOTE: spherical cases for
+//       - SphericalSampledAccretion
+//       - SphericalAccretion
+//       - Outflow (state, and )
+//       - In<region> for things thtat are spherical
+
+//
+
+/* ************************************************ */
+void SphericalSampledAccretion(const Data *d, Grid *grid) {
+
+/*!
+ * Calculate the spherical accretion rate through the surface of a sphere.
+ *
+ ************************************************** */
+
+    double rho, vs1;
+    double vx1, vx2, vx3;
+    double *x1, *x2, *x3;
+    double accr, accr_rate = 0;
+    int gcount = 0, lcount = 0;
+
+    /* Determine number of sampling points to use */
+    static int once = 0;
+    static int npoints;
+    static double area_per_point;
+
+    double dl_min = grid[IDIR].dl_min;
+    if (!once) {
+        npoints = (int) (ac.area / (dl_min * dl_min));
+        area_per_point = ac.area / npoints;
+        once = 1;
+    }
+
+    /* Get npoint random points on spherical surface */
+    x1 = ARRAY_1D(npoints, double);
+    x2 = ARRAY_1D(npoints, double);
+    x3 = ARRAY_1D(npoints, double);
+    RandomSamplingSphericalSurface(npoints, ac.rad, x1, x2, x3);
+
+    /* Determine which variables to interpolate */
+    double v[NVAR];
+    int vars[] = {RHO, ARG_EXPAND(VX1, VX2, VX3), -1};
+
+    /* Calculate accretion rate at every point, if it is in the local domain */
+    for (int ipoint = 0; ipoint < npoints; ipoint++){
+
+        if( PointInDomain(grid, x1[ipoint], x2[ipoint], x3[ipoint]) ) {
+
+            InterpolateGrid(d, grid, vars, x1[ipoint], x2[ipoint], x3[ipoint], v);
+
+            /* Calculate and sum accretion rate */
+            rho = v[RHO];
+            vx1 = vx2 = vx3 = 0;
+            EXPAND(vx1 = v[VX1];,
+                   vx2 = v[VX2];,
+                   vx3 = v[VX3];);
+            vs1 = VSPH1(x1[ipoint], x2[ipoint], x3[ipoint], vx1, vx2, vx3);
+            vs1 = fabs(MIN(vs1, 0));
+
+            accr = rho * vs1 * area_per_point;
+            accr_rate += accr;
+
+        }
+
+    }
+
+
+#ifdef PARALLEL
+    MPI_Allreduce(&accr_rate, &ac.accr_rate_rss, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+#else
+    ac.accr_rate_rss = accr_rate;
+
+#endif
+
+    FreeArray1D(x1);
+    FreeArray1D(x2);
+    FreeArray1D(x3);
+
+}
+
 
 /* ************************************************ */
 void SphericalAccretion(const Data *d, Grid *grid) {
@@ -151,7 +276,8 @@ void SphericalAccretion(const Data *d, Grid *grid) {
 
     /* Measure accretion rate through a spherical surface defined by ac->rad (ARAD) */
 
-    if (SphereSurfaceIntersectsDomain(grid, ac.rad)) {
+    // TODO: Probalby don't really need this condition. Just keeps some processors idle.
+//    if (SphereSurfaceIntersectsDomain(grid, ac.rad)) {
 
         /* Get number of cells lying on spherical surface ac.rad. */
 
@@ -252,7 +378,7 @@ void SphericalAccretion(const Data *d, Grid *grid) {
 
 #endif // SIC_HYBRID
 
-    }
+//    } // if (SphereSurfaceIntersectsDomain)
 
 
 
@@ -324,6 +450,7 @@ void FederrathAccretion(const Data *d, Grid *grid) {
     double accr, accr_rate = 0;
     double result[NVAR];
 
+    // TODO: The SphereIntersectsDomain, probably not necessary.
     if (SphereIntersectsDomain(grid, ac.snk)){
 
         /* These are the geometrical central points */
@@ -376,7 +503,6 @@ void SphericalAccretionOutput() {
         char *dir, fname[512];
         FILE *fp_acc;
         static double next_output = -1;
-        double accr_rate_msun_yr;
 
         // TODO: complete this (if necessary)
 //        dir = GetOutputDir();
@@ -408,24 +534,39 @@ void SphericalAccretionOutput() {
 
         }
 
+
         /* Write data */
         if (g_time > next_output) {
 
             /* Accretion rate in cgs */
-            accr_rate_msun_yr = ac.accr_rate * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_msun_yr = ac.accr_rate * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_msun_yr = ac.accr_rate_rss * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
+            // TODO: add Eddington rate and Eddington ratio here
 #if MEASURE_BONDI_ACCRETION == YES
 
             double accr_rate_bondi_msun_yr;
 
             accr_rate_bondi_msun_yr = ac.accr_rate_bondi * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
-            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e %12.6e \n", g_time * vn.t_norm / (CONST_ly / CONST_c),
-                    g_dt * vn.t_norm / (CONST_ly / CONST_c), accr_rate_msun_yr, accr_rate_bondi_msun_yr,
-                    ac.mbh * vn.m_norm / CONST_Msun);
+            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
+                    g_time * vn.t_norm / (CONST_ly / CONST_c),            // time
+                    g_dt * vn.t_norm / (CONST_ly / CONST_c),              // dt
+                    accr_rate_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_msun_yr,                                // measured acc rate from rand sph smpl
+                    ac.accr_rate * vn.mdot_norm * CONST_c * CONST_c,      // measured acc power
+                    accr_rate_bondi_msun_yr,                              // bondi rate
+                    ac.mbh * vn.m_norm / CONST_Msun,                      // black hole mass
+                    ac.edd * vn.power_norm);                              // Eddington power
 
 #else
-            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e \n", g_time * vn.t_norm / (CONST_ly / CONST_c),
-                    g_dt * vn.t_norm / (CONST_ly / CONST_c), accr_rate_msun_yr, ac.mbh * vn.m_norm / CONST_Msun);
+            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
+                    g_time * vn.t_norm / (CONST_ly / CONST_c),
+                    g_dt * vn.t_norm / (CONST_ly / CONST_c),
+                    accr_rate_msun_yr,
+                    accr_rate_rss_msun_yr,
+                    ac.accr_rate * vn.mdot_norm * CONST_c * CONST_c,
+                    ac.mbh * vn.m_norm / CONST_Msun,
+                    ac.edd * vn.power_norm);
 #endif
 
             next_output += ACCRETION_OUTPUT_RATE;
@@ -448,7 +589,7 @@ void SphericalFreeflow(double *prims, double ****Vc, const double *x1, const dou
  *
  ************************************************** */
 
-    /* Cental cell radius */
+    /* Central cell radius */
     double radc = SPH1(x1[i], x2[j], x3[k]);
 
     /* Number of cells in a direction to look at - hardcoded here */
@@ -643,13 +784,13 @@ void SphericalFreeflowInternalBoundary(const double ****Vc, int i, int j, int k,
  ************************************************** */
 
     int nv;
-    double vx1, vx2, vx3, vs1;
+    double vx1, vx2, vx3, vs1, vs2, vs3;
     double sx1, sx2, sx3;
     double prims[NVAR];
 
     SphericalFreeflow(prims, Vc, x1, x2, x3, k, j, i);
 
-    /* Remove non spherical velocity components of gas */
+    /* Limit radial velocity component to negative values. */
     vx1 = vx2 = vx3 = 0;
     EXPAND(vx1 = prims[VX1];,
            vx2 = prims[VX2];,
@@ -658,13 +799,15 @@ void SphericalFreeflowInternalBoundary(const double ****Vc, int i, int j, int k,
     sx2 = SPH2(x1[i], x2[j], x3[k]);
     sx3 = SPH3(x1[i], x2[j], x3[k]);
     vs1 = VSPH1(x1[i], x2[j], x3[k], vx1, vx2, vx3);
+    vs2 = VSPH2(x1[i], x2[j], x3[k], vx1, vx2, vx3);
+    vs3 = VSPH3(x1[i], x2[j], x3[k], vx1, vx2, vx3);
     vs1 = MIN(vs1, 0);
 
     for (nv = 0; nv < NVAR; ++nv) result[nv] = prims[nv];
 
-    EXPAND(result[VX1] = VSPH_1(sx1, sx2, sx3, vs1, 0, 0);,
-           result[VX2] = VSPH_2(sx1, sx2, sx3, vs1, 0, 0);,
-           result[VX3] = VSPH_3(sx1, sx2, sx3, vs1, 0, 0);
+    EXPAND(result[VX1] = VSPH_1(sx1, sx2, sx3, vs1, vs2, vs3);,
+           result[VX2] = VSPH_2(sx1, sx2, sx3, vs1, vs2, vs3);,
+           result[VX3] = VSPH_3(sx1, sx2, sx3, vs1, vs2, vs3);
     );
 
 }

@@ -67,6 +67,7 @@ void Init (double *v, double x1, double x2, double x3)
 
         /* Initialize base normalization struct */
         SetBaseNormalization();
+        PrintBaseNormalizations();
 
         /* Set normalization factors for input parameters */
         SetIniNormalization();
@@ -164,7 +165,7 @@ void Init (double *v, double x1, double x2, double x3)
     }
 
 #if COOLING
-    g_minCoolingTemp = 1.e3;
+    g_minCoolingTemp = 3.e2;
     g_maxCoolingRate = 0.9;
 #endif
 
@@ -213,6 +214,7 @@ void Analysis (const Data *d, Grid *grid)
 
 #else
     SphericalAccretion(d, grid);
+    SphericalSampledAccretion(d, grid);
 
 #endif
 
@@ -329,9 +331,7 @@ void UserDefBoundary (const Data *d, RBox *box, int side, Grid *grid)
 
         /* Accretion and Nozzle */
 
-        /* Note - this condition prevents interprocessor communications
-         * beyond here and is not strictly necessary. */
-        // TODO: Consider removing this condition
+        // TODO: Probalby don't really need this condition. Just keeps some processors idle.
 //        if (SphereIntersectsDomain(grid, nz.sph)) {
 
             // TODO: Separate ACCRETION from NOZZLE
@@ -386,6 +386,7 @@ void UserDefBoundary (const Data *d, RBox *box, int side, Grid *grid)
 
 #elif SINK_METHOD == SINK_BONDI
 
+                                // TODO: Change this to: extract mass according to Bondi accretion rate.
                                 /* Apply Bondi flow solution */
                                 BondiFlowInternalBoundary(x1[i], x2[j], x3[k], result);
 
@@ -393,6 +394,8 @@ void UserDefBoundary (const Data *d, RBox *box, int side, Grid *grid)
 
                                 /* Remove mass according to Federrath's sink particle method */
                                 FederrathSinkInternalBoundary(d->Vc, i, j, k, x1, x2, x3, dV1, dV2, dV3, result);
+
+// TODO: Create HOT_HALO sink method:just use hot halo fixed boundaries.
 
 #endif  // SINK_METHOD
 

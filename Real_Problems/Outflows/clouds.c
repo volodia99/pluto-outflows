@@ -103,9 +103,10 @@ void ReadFractalData()
 /* ************************************************************** */
 void GetFractalData(double *cloud, const double x1, const double x2, const double x3)
 /*!
- * This routine returns the value of the fractal multiplication factor "fd"
- * at point (x1, x2, x3). The array "cloud" is filled in the process. For
- * the values specified in ReadFractalData.
+ *  This routine is just a wrapper to InputDataInterpolate.
+ *  The input cube has a normalized density distribution about 1
+ *  (which is later multiplied by WRHO) and
+ *
  *
  **************************************************************** */
 {
@@ -113,14 +114,10 @@ void GetFractalData(double *cloud, const double x1, const double x2, const doubl
     double x, y, z;
     int nv, inv;
 
-    /* Cloud data is in cartesian coordiantes
-       InputDataInterpolate */
-//    x = CART1(x1, x2, x3);
-//    y = CART2(x1, x2, x3);
-//    z = CART3(x1, x2, x3);
-//    InputDataInterpolate(cloud, x, y, z);
     InputDataInterpolate(cloud, x1, x2, x3);
 
+    // TODO: Add condition for whether CLOUD_INPUT_DATA is used
+    /* Normalize velocities to code units here */
     EXPAND(cloud[VX1] *= ini_code[PAR_WTRB];,
            cloud[VX2] *= ini_code[PAR_WTRB];,
            cloud[VX3] *= ini_code[PAR_WTRB];);
@@ -361,7 +358,7 @@ void CloudVelocity(double *cloud, double *halo,
  **************************************************************** */
 {
 
-
+    /* The clouds at this point are in km/s, as they come in read from the cube */
     double v1, v2, v3;
 
 #if CLOUD_VELOCITY == CV_KEPLERIAN
@@ -395,15 +392,13 @@ void CloudVelocity(double *cloud, double *halo,
         vpol3 = VPOL3(x1, x2, x3, v1, v2, v3);
 
 
-        /* Use spherical radius instead of cycldrical radius, here.
-         * At least for N-body initializations of thick discs in non-cylindrical potentials,
-         * this gives a better results */
+        /* Use local gradient, rather than mid plane potential.
+         * At least for N-body initializations of thick discs in non-axissymetric potentials,
+         * this gives a better results, according to Miki et al 2017, MAGI paper. */
         r_cyl = CYL1(x1, x2, x3);
         BodyForceVector(cloud, gvec, x1, x2, x3);
-
-        // TODO: Ask Miki-kun which is correct
         dphidr = -VPOL1(x1, x2, x3, gvec[IDIR], gvec[JDIR], gvec[KDIR]);
-//        dphidr = -VSPH1(x1, x2, x3, gvec[IDIR], gvec[JDIR], gvec[KDIR]);
+//        dphidr = InterpolationWrapper(gr_rad, gr_dphidr, gr_ndata, r_cyl);
 
         /* The angular (linear) velocity */
         vpol2 += ek * sqrt(r_cyl * dphidr);
@@ -523,7 +518,7 @@ void CloudVelocity(double *cloud, double *halo,
     }
 
 
-    /* Put back into cloud array. */
+    /* Put back in to cloud array */
     EXPAND(cloud[VX1] = v1;, cloud[VX2] = v2;, cloud[VX3] = v3;);
 
 

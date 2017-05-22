@@ -112,9 +112,9 @@ void SetIniNormalization() {
     ini_cgs[PAR_ASNK] = vn.l_norm;
     ini_cgs[PAR_HRHO] = vn.dens_norm;
     ini_cgs[PAR_HTMP] = 1;
-    ini_cgs[PAR_HVX1] = GEOM_UNITS1(1, 1.e5);
-    ini_cgs[PAR_HVX2] = GEOM_UNITS2(1, 1.e5);
-    ini_cgs[PAR_HVX3] = GEOM_UNITS3(1, 1.e5);
+    ini_cgs[PAR_HVX1] = 1.e5;
+    ini_cgs[PAR_HVX2] = 1.e5;
+    ini_cgs[PAR_HVX3] = 1.e5;
     ini_cgs[PAR_HVRD] = 1.e5;
     ini_cgs[PAR_HRAD] = vn.l_norm;
 //    ini_cgs[PAR_MGAL] = CONST_Msun;
@@ -157,9 +157,9 @@ void SetIniNormalization() {
     ini_code[PAR_ASNK] = ini_cgs[PAR_ASNK] / vn.l_norm;
     ini_code[PAR_HRHO] = ini_cgs[PAR_HRHO] / vn.dens_norm;
     ini_code[PAR_HTMP] = ini_cgs[PAR_HTMP] / vn.temp_norm;
-    ini_code[PAR_HVX1] = ini_cgs[PAR_HVX1] / GEOM_UNITS1(1, vn.v_norm);
-    ini_code[PAR_HVX2] = ini_cgs[PAR_HVX2] / GEOM_UNITS2(1, vn.v_norm);
-    ini_code[PAR_HVX3] = ini_cgs[PAR_HVX3] / GEOM_UNITS3(1, vn.v_norm);
+    ini_code[PAR_HVX1] = ini_cgs[PAR_HVX1] / vn.v_norm;
+    ini_code[PAR_HVX2] = ini_cgs[PAR_HVX2] / vn.v_norm;
+    ini_code[PAR_HVX3] = ini_cgs[PAR_HVX3] / vn.v_norm;
     ini_code[PAR_HVRD] = ini_cgs[PAR_HVRD] / vn.v_norm;
     ini_code[PAR_HRAD] = ini_cgs[PAR_HRAD] / vn.l_norm;
 //    ini_code[PAR_MGAL] = ini_cgs[PAR_MGAL] / vn.m_norm;
@@ -282,6 +282,45 @@ void PrintGridStruct(Grid *grid, int show_for_rank, int k, int j, int i) {
         printf("grid[].nproc       = %16d %16d %16d\n", grid[IDIR].nproc,       grid[JDIR].nproc,       grid[KDIR].nproc);
         printf("grid[].rank_coord  = %16d %16d %16d\n", grid[IDIR].rank_coord,  grid[JDIR].rank_coord,  grid[KDIR].rank_coord);
         printf("grid[].level       = %16d %16d %16d\n", grid[IDIR].level,       grid[JDIR].level,       grid[KDIR].level);
+
+    }
+
+}
+
+/* ************************************************ */
+void PrintBaseNormalizations() {
+    /*!
+     * grid     array of grid structures
+     *
+     * The function prints out grid structure members and
+     * is useful for parallel debugging.
+     *
+     ************************************************** */
+
+    int prank = 0;
+#ifdef PARALLEL
+    MPI_Comm_rank(MPI_COMM_WORLD, &prank);
+#endif
+
+    if (prank == 0) {
+
+        print1("vn.l_norm      = %16e \n", vn.l_norm );
+        print1("vn.dens_norm   = %16e \n", vn.dens_norm );
+        print1("vn.v_norm      = %16e \n", vn.v_norm );
+        print1("vn.temp_norm   = %16e \n", vn.temp_norm );
+        print1("vn.t_norm      = %16e \n", vn.t_norm );
+        print1("vn.area_norm   = %16e \n", vn.area_norm );
+        print1("vn.pres_norm   = %16e \n", vn.pres_norm );
+        print1("vn.power_norm  = %16e \n", vn.power_norm );
+        print1("vn.eflux_norm  = %16e \n", vn.eflux_norm );
+        print1("vn.eint_norm   = %16e \n", vn.eint_norm );
+        print1("vn.mdot_norm   = %16e \n", vn.mdot_norm );
+        print1("vn.newton_norm = %16e \n", vn.newton_norm );
+        print1("vn.pot_norm    = %16e \n", vn.pot_norm );
+        print1("vn.acc_norm    = %16e \n", vn.acc_norm );
+        print1("vn.n_norm      = %16e \n", vn.n_norm );
+        print1("vn.m_norm      = %16e \n", vn.m_norm );
+        print1("\n");
 
     }
 
