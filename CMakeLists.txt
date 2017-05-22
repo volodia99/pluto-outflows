@@ -4,9 +4,9 @@ project(PLUTO)
 
 #_______________________________________________________________________________________________________________________
 # Set these
+# Mac setup
 
-#set(PLUTO_SOURCE_DIR            /Users/ayw/dev/PLUTO)
-set(PLUTO_SOURCE_DIR            C:/Users/Utilisateur/Desktop/PLUTO)
+set(PLUTO_SOURCE_DIR            /Users/gaylor/Desktop/PLUTO)
 set(PROBLEM_TYPE                Real)
 set(PROBLEM                     Outflows)
 
@@ -39,7 +39,15 @@ set(WITH_GLM                    OFF)
 
 # -- Library paths --
 
-set(HDF5_PATH C:/cygwin64/home/Utilisateur/hdf5)
+set(HDF5_PATH_PAR /usr/local/lib/hdf5-parallel)
+set(HDF5_PATH_SER /usr/local/lib/hdf5-serial)
+
+# -- Compilers --
+
+set(WITH_C_COMPILER gcc)
+set(WITH_MPI_COMPILER /usr/local/bin/mpicc)
+set(WITH_MPIXX_COMPILER /usr/local/bin/mpicxx)
+
 
 #_______________________________________________________________________________________________________________________
 # Main bit
@@ -68,7 +76,7 @@ set(INCLUDE_DIRECTORIES
 
 set(LINK_DIRECTORIES)
 
-set(LINK_LIBRARIES)
+set(LINK_LIBRARIES m z)
 
 
 # Setup-dependent / Problem-type dependent files
@@ -95,8 +103,9 @@ if (PROBLEM STREQUAL Outflows)
 
 #     TODO: Automate necessary file link to run simulations
     # Executable output location
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/gaylor/Desktop/PLUTO/Lab/sph)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUTO_SOURCE_DIR}/Lab/Accretion)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY C:/Users/Utilisateur/Desktop/PLUTO/Lab/run_accretion/halo_clouds/sph_halo_clouds_disk)
+#    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /home/wagner/test_output)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/IC5063)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/Outflow)
 
@@ -319,17 +328,17 @@ if (WITH_PARALLEL)
 
     # ----
 
-#    set(CMAKE_C_COMPILER /usr/local/bin/mpicc)
-#    set(CMAKE_CXX_COMPILER /usr/local/bin/mpicxx)
+    set(CMAKE_C_COMPILER ${WITH_MPI_COMPILER})
+    set(CMAKE_CXX_COMPILER ${WITH_MPIXX_COMPILER})
 
     # OR (https://cmake.org/pipermail/cmake/2015-April/060252.html)
 
-        find_package(MPI REQUIRED)
-        set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-        set(CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} ${MPI_LINK_FLAGS})
-        set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-        set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
-        set(LINK_LIBRARIES ${LINK_LIBRARIES} ${MPI_LIBRARIES})
+     find_package(MPI REQUIRED)
+#    set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+#    set(CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} ${MPI_LINK_FLAGS})
+#    set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+#    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+#    set(LINK_LIBRARIES ${LINK_LIBRARIES} ${MPI_LIBRARIES})
 
     # ----
 
@@ -359,6 +368,9 @@ if (WITH_PARALLEL)
             ${SOURCE_DIR}/Parallel/al_szptr_.c
             ${SOURCE_DIR}/Parallel/al_write_array_async.c
             )
+    else()
+
+    set(CMAKE_C_COMPILER ${WITH_C_COMPILER})
 endif ()
 
 
@@ -377,16 +389,22 @@ if (WITH_HDF5)
 
     if (WITH_PARALLEL)
         set(HDF5_PREFER_PARALLEL TRUE)
-        set(HDF5_ROOT ${HDF5_PATH}/hdf5_parallel)
+        if (DEFINED HDF5_PATH_PAR)
+            set(HDF5_ROOT ${HDF5_PATH_PAR})
+        endif()
     else()
-        set(HDF5_ROOT ${HDF5_PATH}/hdf5_serial)
+        if (DEFINED HDF5_PATH_SER)
+            set(HDF5_ROOT ${HDF5_PATH_SER})
+        endif ()
     endif ()
 
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
     find_package(HDF5 REQUIRED)
-
 
     set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${HDF5_INCLUDE_DIRS})
     set(LINK_LIBRARIES ${LINK_LIBRARIES} ${HDF5_LIBRARIES})
+
+    #message(STATUS "HDF_LIBRARIES = ${HDF5_LIBRARIES}")
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_HDF5")
     set(SOURCE_FILES  ${SOURCE_FILES}
@@ -807,5 +825,4 @@ link_directories(${LINK_DIRECTORIES})
 link_libraries(${LINK_LIBRARIES})
 
 add_executable(pluto ${SOURCE_FILES})
-
 
