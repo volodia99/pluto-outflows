@@ -1,8 +1,8 @@
 #define  PHYSICS                 HD
-#define  DIMENSIONS              2
+#define  DIMENSIONS              3
 #define  COMPONENTS              3
-#define  GEOMETRY                SPHERICAL
-#define  BODY_FORCE              POTENTIAL
+#define  GEOMETRY                CARTESIAN
+#define  BODY_FORCE              VECTOR
 #define  COOLING                 TABULATED
 #define  RECONSTRUCTION          PARABOLIC
 #define  TIME_STEPPING           RK3

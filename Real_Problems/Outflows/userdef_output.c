@@ -17,11 +17,11 @@ void ComputeUserVar (const Data *d, Grid *grid)
 {
   int i, j, k, nv;
   double ***te, ***spd, ***lmd;
-  double ***prs, ***rho, ***vx1, ***vx2, ***vx3, dummy[NVAR];
-  double rhs[NVAR];
-  double mu, sp1, sp2, sp3;
-  double *x1, *x2, *x3;
   double ***v1, ***v2, ***v3;
+  double ***prs, ***rho, ***vx1, ***vx2, ***vx3;
+  double mu, sp1, sp2, sp3;
+  double v[NVAR], rhs[NVAR];
+  double *x1, *x2, *x3;
 #if RECONSTRUCT_4VEL == YES
   double vel, speed, lorentz;
 #endif
@@ -31,8 +31,8 @@ void ComputeUserVar (const Data *d, Grid *grid)
   double ***xs1, ***xs2, ***xs3;
   double ***xc1, ***xc2, ***xc3;
   D_EXPAND(xs1 = GetUserVar("xs1");,
-         xs2 = GetUserVar("xs2");,
-         xs3 = GetUserVar("xs3"););
+           xs2 = GetUserVar("xs2");,
+           xs3 = GetUserVar("xs3"););
   D_EXPAND(xc1 = GetUserVar("xc1");,
            xc2 = GetUserVar("xc2");,
            xc3 = GetUserVar("xc3"););
@@ -74,9 +74,15 @@ void ComputeUserVar (const Data *d, Grid *grid)
 #endif
 
         /* Temperature */
-        for (nv = 0; nv < NVAR; nv++) dummy[nv] = d->Vc[nv][k][j][i];
-        mu = MeanMolecularWeight(dummy);
+        for (nv = 0; nv < NVAR; nv++) v[nv] = d->Vc[nv][k][j][i];
+        mu = MeanMolecularWeight(v);
         te[k][j][i] = TempIdealEOS(rho[k][j][i], prs[k][j][i], mu) * vn.temp_norm;
+
+        /* Cooling rate */
+        v[RHOE] /= g_gamma - 1.;
+        Radiat(v, rhs);
+        double lmd_norm = vn.pres_norm / vn.t_norm;
+        lmd[k][j][i] = rhs[RHOE] * lmd_norm;
 
         /* Speed */
         sp1 = sp2 = sp3 = 0;
@@ -84,11 +90,6 @@ void ComputeUserVar (const Data *d, Grid *grid)
                sp2 = vx2[k][j][i];,
                sp3 = vx3[k][j][i];);
         spd[k][j][i] = VMAG(x1[i], x2[j], x3[k], sp1, sp2, sp3);
-
-        /* Cooling rate */
-        dummy[RHOE] /= g_gamma - 1.;
-        Radiat(dummy, rhs);
-        lmd[k][j][i] = rhs[RHOE];
 
 #if GEOMETRY == POLAR || GEOMETRY == SPHERICAL
         /* This is useful in polar and spherical geometries, where the vectors are rotated. */
@@ -103,9 +104,9 @@ void ComputeUserVar (const Data *d, Grid *grid)
 
 #endif
 
-        EXPAND(v1[k][j][i] = sp1;,
-               v2[k][j][i] = sp2;,
-               v3[k][j][i] = sp3;);
+        EXPAND(v1[k][j][i] = sp1 * vn.v_norm / ini_cgs[PAR_WTRB];,
+               v2[k][j][i] = sp2 * vn.v_norm / ini_cgs[PAR_WTRB];,
+               v3[k][j][i] = sp3 * vn.v_norm / ini_cgs[PAR_WTRB];);
 
 #if RECONSTRUCT_4VEL == YES
     /* speed at this point is gamma * vel.

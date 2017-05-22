@@ -6,7 +6,7 @@
 
 #define ACCRETION                   YES
 #define ACCRETION_OUTPUT            YES
-#define ACCRETION_OUTPUT_RATE       0.15318627450980393
+#define ACCRETION_OUTPUT_RATE       0.1
 #define SIC_METHOD                  SIC_HYBRID
 #define SID_METHOD                  SID_REGIONS
 #define SINK_METHOD                 SINK_FREEFLOW
@@ -26,8 +26,10 @@
 #define CLOUD_EXTRACT               NONE
 #define CUBE_ENDIANNESS             "little"
 
-#define MU_CALC                     MU_ANALYTIC
+#define COORDINATE_SYSTEM_DEBUG     FALSE
+
 /* --- Not usually changed ---- */
+#define MU_CALC                     MU_ANALYTIC
 #define CLOUD_TCRIT                 3.0e4
 #define CLOUD_MUCRIT                0.6212407755077543
 #define JD_MODE                     JD_GRAD
