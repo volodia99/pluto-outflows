@@ -24,7 +24,6 @@
 #define CLOUD_VELOCITY              CV_KEPLERIAN
 #define CLOUD_SCALE                 CS_VELOCITY_DISPERSION
 #define CLOUD_EXTRACT               NONE
-#define CUBE_ENDIANNESS             "little"
 
 #define COORDINATE_SYSTEM_DEBUG     FALSE
 
