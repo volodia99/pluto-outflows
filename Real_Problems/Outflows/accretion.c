@@ -41,6 +41,7 @@ void SetAccretionPhysics() {
 
     /* Global accretion rate */
     ac.accr_rate = 0;
+    ac.accr_rate_rss = 0;
 
     /* Area of accretion surface. */
     ac.area = 4 * CONST_PI * ac.rad * ac.rad;
@@ -77,7 +78,7 @@ int InSinkRegion(const double x1, const double x2, const double x3) {
  * of rad.
  ************************************************** */
 
-    /* Nozzle is be deactivated if OSPH is zero */
+    /* Sink is be deactivated if ASNK is zero */
     if (ac.snk == 0.) return 0;
 
     /* Do radius check. Get spherical r coordinate */
@@ -96,6 +97,7 @@ int InSinkRegion(const double x1, const double x2, const double x3) {
 
     /* For internal boundary, we include a mirrored component with fabs.
      * This must occur after rotation but before translation. */
+    // TODO: make consistent with Nozzle (is_two_sided)
 #if INTERNAL_BOUNDARY == YES
     D_SELECT(cx1p, cx2p, cx3p) = fabs(D_SELECT(cx1p, cx2p, cx3p));
 #endif
@@ -121,49 +123,6 @@ int InSinkRegion(const double x1, const double x2, const double x3) {
 }
 
 
-/* ************************************************ */
-void RandomSamplingSphericalSurface(const int npoints, const double radius, double *x1, double *x2, double *x3) {
-/*!
- * Return random points on surface of sphere.
- * Use method by Marsaglia (1972), see:
- * http://mathworld.wolfram.com/SpherePointPicking.html
- *
- ************************************************** */
-
-    int i, j, k;
-
-
-    int lcount = 0;
-
-    double r2, scrh;
-    double cx1, cx2, cx3;
-    double rad_sc = sqrt(radius);
-
-    while (lcount < npoints) {
-        double rvar1 = RandomNumber(-rad_sc, rad_sc);
-        double rvar2 = RandomNumber(-rad_sc, rad_sc);
-
-        // Rejection
-        r2 = rvar1 * rvar1 + rvar2 * rvar2;
-        if (r2 < rad_sc * rad_sc) {
-
-            // Cartesian coordinates of points on sphere
-            scrh = sqrt(rad_sc * rad_sc - rvar1 * rvar1 - rvar2 * rvar2);
-            cx1 = 2. * rvar1 * scrh;
-            cx2 = 2. * rvar2 * scrh;
-            cx3 = rad_sc * rad_sc - 2. * r2;
-
-            D_EXPAND(x1[lcount] = CART_1(cx1, cx2, cx3);,
-                     x2[lcount] = CART_2(cx1, cx2, cx3);,
-                     x3[lcount] = CART_3(cx1, cx2, cx3););
-
-            lcount ++;
-        }
-
-    }
-
-}
-
 // TODO: Special case for spherical cases
 // NOTE: spherical cases for
 //       - SphericalSampledAccretion
@@ -185,25 +144,22 @@ void SphericalSampledAccretion(const Data *d, Grid *grid) {
     double vx1, vx2, vx3;
     double *x1, *x2, *x3;
     double accr, accr_rate = 0;
-    int gcount = 0, lcount = 0;
+//    int gcount = 0, lcount = 0;
 
     /* Determine number of sampling points to use */
-    static int once = 0;
-    static int npoints;
+    int npoints;
     static double area_per_point;
 
     double dl_min = grid[IDIR].dl_min;
-    if (!once) {
-        npoints = (int) (ac.area / (dl_min * dl_min));
-        area_per_point = ac.area / npoints;
-        once = 1;
-    }
+    npoints = (int) (ac.area / (dl_min * dl_min));
 
-    /* Get npoint random points on spherical surface */
+    // TODO: make once only - no need to recreate same points every timestep.
+    /* Get npoint points on spherical surface */
     x1 = ARRAY_1D(npoints, double);
     x2 = ARRAY_1D(npoints, double);
     x3 = ARRAY_1D(npoints, double);
-    RandomSamplingSphericalSurface(npoints, ac.rad, x1, x2, x3);
+    npoints = UniformSamplingSphericalSurface(npoints, ac.rad, x1, x2, x3);
+    area_per_point = ac.area / npoints;
 
     /* Determine which variables to interpolate */
     double v[NVAR];
@@ -228,6 +184,8 @@ void SphericalSampledAccretion(const Data *d, Grid *grid) {
             accr = rho * vs1 * area_per_point;
             accr_rate += accr;
 
+//            lcount ++;
+
         }
 
     }
@@ -235,11 +193,17 @@ void SphericalSampledAccretion(const Data *d, Grid *grid) {
 
 #ifdef PARALLEL
     MPI_Allreduce(&accr_rate, &ac.accr_rate_rss, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+//    MPI_Allreduce(&lcount, &gcount, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
 #else
     ac.accr_rate_rss = accr_rate;
+//    gcount = lcount;
 
 #endif
+
+//    print1("\n");
+//    print1("SphericalSampledAccretion: gcount = %10d, npoints = %10d", gcount, npoints);
+//    print1("\n");
 
     FreeArray1D(x1);
     FreeArray1D(x2);
@@ -252,6 +216,8 @@ void SphericalSampledAccretion(const Data *d, Grid *grid) {
 void SphericalAccretion(const Data *d, Grid *grid) {
 /*!
  * Calculate the spherical accretion rate through the surface of a sphere.
+ *
+ * Deprecated - use SphericalSampledAccretion instead.
  *
  ************************************************** */
 
@@ -542,7 +508,7 @@ void SphericalAccretionOutput() {
             double accr_rate_msun_yr = ac.accr_rate * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
             double accr_rate_rss_msun_yr = ac.accr_rate_rss * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
-            // TODO: add Eddington rate and Eddington ratio here
+            // TODO: Move Bondi accretion to separate function.
 #if MEASURE_BONDI_ACCRETION == YES
 
             double accr_rate_bondi_msun_yr;

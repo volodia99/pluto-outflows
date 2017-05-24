@@ -316,17 +316,17 @@ void InterpolateGrid(const Data *data, const Grid *grid, int *vars, double x1, d
 
     /* Get domain data and range */
 
-    D_EXPAND(int gr_nx1 = grid[IDIR].np_int;,
-             int gr_nx2 = grid[JDIR].np_int;,
-             int gr_nx3 = grid[KDIR].np_int;);
+    D_EXPAND(int gr_nx1 = grid[IDIR].np_tot;,
+             int gr_nx2 = grid[JDIR].np_tot;,
+             int gr_nx3 = grid[KDIR].np_tot;);
     D_EXPAND(double * gr_x1 = grid[IDIR].x;,
              double * gr_x2 = grid[JDIR].x;,
              double * gr_x3 = grid[KDIR].x;);
 
     /* Find left indices */
-    // TODO: Check whether size of gr_x1 is same as gr_nx1
-    int il, jl, kl;
-    il = jl = kl = 0;
+    int il = grid[IDIR].lbeg;
+    int jl = grid[JDIR].lbeg;
+    int kl = grid[KDIR].lbeg;
     D_EXPAND(il = hunter2(gr_x1, gr_nx1, x1);,
              jl = hunter2(gr_x2, gr_nx2, x2);,
              kl = hunter2(gr_x3, gr_nx3, x3););
@@ -367,4 +367,100 @@ void InterpolateGrid(const Data *data, const Grid *grid, int *vars, double x1, d
 
         nv ++;
     }
+}
+
+/* ************************************************ */
+int UniformSamplingSphericalSurface(const int npoints, const double radius, double *x1, double *x2, double *x3) {
+/*!
+ * Uniform sampling version of RandomSamplingSphericalSurface
+ *
+ ************************************************** */
+
+    int i, j, k;
+
+    int lcount = 0;
+
+    double r2, scrh;
+    double cx1, cx2, cx3;
+    double rad_sc = sqrt(radius);
+
+    int npoints_dir;
+    npoints_dir = (int) (sqrt(npoints / CONST_PI * 4.));
+
+    double spacing = 2 * rad_sc / npoints_dir;
+
+    for (int n1 = 0; n1 < npoints_dir; n1++) {
+        for (int n2 = 0; n2 < npoints_dir; n2++) {
+
+            double rvar1 = -rad_sc + (0.5 + n1) * spacing;
+            double rvar2 = -rad_sc + (0.5 + n2) * spacing;
+
+            // Rejection
+            r2 = rvar1 * rvar1 + rvar2 * rvar2;
+            if (r2 < rad_sc * rad_sc) {
+
+                // Cartesian coordinates of points on sphere
+                scrh = sqrt(rad_sc * rad_sc - rvar1 * rvar1 - rvar2 * rvar2);
+                cx1 = 2. * rvar1 * scrh;
+                cx2 = 2. * rvar2 * scrh;
+                cx3 = rad_sc * rad_sc - 2. * r2;
+
+                D_EXPAND(x1[lcount] = CART_1(cx1, cx2, cx3);,
+                         x2[lcount] = CART_2(cx1, cx2, cx3);,
+                         x3[lcount] = CART_3(cx1, cx2, cx3););
+
+                lcount++;
+
+                if (lcount == npoints) break;
+            }
+        }
+        if (lcount == npoints) break;
+
+    }
+
+    return lcount;
+
+}
+
+/* ************************************************ */
+void RandomSamplingSphericalSurface(const int npoints, const double radius, double *x1, double *x2, double *x3) {
+/*!
+ * Return random points on surface of sphere.
+ * Use method by Marsaglia (1972), see:
+ * http://mathworld.wolfram.com/SpherePointPicking.html
+ *
+ ************************************************** */
+
+    int i, j, k;
+
+
+    int lcount = 0;
+
+    double r2, scrh;
+    double cx1, cx2, cx3;
+    double rad_sc = sqrt(radius);
+
+    while (lcount < npoints) {
+        double rvar1 = RandomNumber(-rad_sc, rad_sc);
+        double rvar2 = RandomNumber(-rad_sc, rad_sc);
+
+        // Rejection
+        r2 = rvar1 * rvar1 + rvar2 * rvar2;
+        if (r2 < rad_sc * rad_sc) {
+
+            // Cartesian coordinates of points on sphere
+            scrh = sqrt(rad_sc * rad_sc - rvar1 * rvar1 - rvar2 * rvar2);
+            cx1 = 2. * rvar1 * scrh;
+            cx2 = 2. * rvar2 * scrh;
+            cx3 = rad_sc * rad_sc - 2. * r2;
+
+            D_EXPAND(x1[lcount] = CART_1(cx1, cx2, cx3);,
+                     x2[lcount] = CART_2(cx1, cx2, cx3);,
+                     x3[lcount] = CART_3(cx1, cx2, cx3););
+
+            lcount ++;
+        }
+
+    }
+
 }
