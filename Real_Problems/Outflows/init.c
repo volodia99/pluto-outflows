@@ -214,7 +214,7 @@ void Analysis (const Data *d, Grid *grid)
 
 #else
     SphericalSampledAccretion(d, grid);
-    SphericalAccretion(d, grid);
+    SphericalSelectedAccretion(d, grid);
     TotalMass(d, grid);
 
 #endif

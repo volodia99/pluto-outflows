@@ -58,7 +58,7 @@ void TotalMass(const Data *d, Grid *grid);
 
 void SphericalSampledAccretion(const Data *d, Grid *grid);
 
-void SphericalAccretion(const Data *d, Grid *grid);
+void SphericalSelectedAccretion(const Data *d, Grid *grid);
 
 void SphericalAccretionOutput();
 

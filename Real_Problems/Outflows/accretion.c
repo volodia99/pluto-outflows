@@ -136,7 +136,7 @@ int InSinkRegion(const double x1, const double x2, const double x3) {
 void TotalMass(const Data *d, Grid *grid) {
 
 /*!
- * Calculate the spherical accretion rate through the surface of a sphere.
+ * Calculate the total mass, warm mass and hot mass in the box.
  *
  ************************************************** */
 
@@ -278,9 +278,8 @@ void SphericalSampledAccretion(const Data *d, Grid *grid) {
 
 }
 
-
 /* ************************************************ */
-void SphericalAccretion(const Data *d, Grid *grid) {
+void SphericalSelectedAccretion(const Data *d, Grid *grid) {
 /*!
  * Calculate the spherical accretion rate through the surface of a sphere.
  *
