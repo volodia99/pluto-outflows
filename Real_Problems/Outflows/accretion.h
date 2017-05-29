@@ -54,6 +54,8 @@ void VacuumInternalBoundary(double *result);
 
 double EddingtonLuminosity(const double mbh);
 
+void TotalMass(const Data *d, Grid *grid);
+
 void SphericalSampledAccretion(const Data *d, Grid *grid);
 
 void SphericalAccretion(const Data *d, Grid *grid);

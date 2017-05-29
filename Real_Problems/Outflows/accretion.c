@@ -133,6 +133,73 @@ int InSinkRegion(const double x1, const double x2, const double x3) {
 //
 
 /* ************************************************ */
+void TotalMass(const Data *d, Grid *grid) {
+
+/*!
+ * Calculate the spherical accretion rate through the surface of a sphere.
+ *
+ ************************************************** */
+
+    int i, j, k;
+    double dV, rho, tr2, Mtot, Mwarm, Mhot;
+    double *dV1, *dV2, *dV3;
+
+    /* ---- Set pointer shortcuts ---- */
+
+    dV1 = grid[IDIR].dV;
+    dV2 = grid[JDIR].dV;
+    dV3 = grid[KDIR].dV;
+
+    /* ---- Main loop ---- */
+
+    DOM_LOOP(k,j,i) {
+                dV = dV1[i] * dV2[j] * dV3[k];  /* Cell volume */
+                rho = d->Vc[RHO][k][j][i];
+                tr2 = d->Vc[TRC+1][k][j][i];
+                Mtot += rho * dV; /* Cell total mass */
+                Mwarm += tr2 * rho * dV; /* Cell warm mass */
+                Mhot += (1 - tr2) * rho * dV; /* Cell hot mass */
+            }
+    /* ---- Parallel data reduction ---- */
+
+    #ifdef PARALLEL
+    MPI_Allreduce (&Mtot, &rho, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    #endif
+
+    /* ---- Write ascii file "totalmass.dat" to disk ---- */
+    if (prank == 0){
+        char  fname[512];
+        static double tpos = -1.0;
+        FILE *fp;
+        sprintf (fname, "%s/totalmass.dat",RuntimeGet()->output_dir);
+        if (g_stepNumber == 0){  /* Open for writing only when we’re starting */
+            fp = fopen(fname,"w"); /*   from beginning */
+            fprintf (fp,"# %7s  %12s  %12s  %12s\n", "t", "Mtot", "Mwarm", "Mhot");
+        }else{              /* Append if this is not step 0  */
+            if (tpos < 0.0){  /* Obtain time coordinate of to last written row */
+                char   sline[512];
+                fp = fopen(fname,"r");
+                while (fgets(sline, 512, fp)) {}
+                sscanf(sline, "%lf\n",&tpos); /* tpos = time of the last written row */
+                fclose(fp);
+            }
+            fp = fopen(fname,"a");
+        }
+        if (g_time > tpos){      /* Write if current time if > tpos */
+            fprintf(fp, "%12.6e  %12.6e  %12.6e  %12.6e \n",
+                    g_time * vn.t_norm / (CONST_ly / CONST_c),                         // time
+                    Mtot * vn.m_norm / CONST_Msun,                                    // total mass
+                    Mwarm * vn.m_norm / CONST_Msun,                                   // warm mass
+                    Mhot * vn.m_norm / CONST_Msun);                                    // hot mass
+
+        }
+        fclose(fp);
+    }
+
+}
+
+
+/* ************************************************ */
 void SphericalSampledAccretion(const Data *d, Grid *grid) {
 
 /*!
