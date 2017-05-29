@@ -213,9 +213,7 @@ void Analysis (const Data *d, Grid *grid)
     FederrathAccretion(d, grid);
 
 #else
-    SphericalSampledAccretion(d, grid);
-    SphericalSelectedAccretion(d, grid);
-    TotalMass(d, grid);
+    SphericalAccretion(d, grid);
 
 #endif
 
