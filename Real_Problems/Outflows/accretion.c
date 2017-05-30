@@ -263,7 +263,8 @@ double SphericalSampledAccretion(const Data *d, Grid *grid, const double radius)
 
     double dl_min = grid[IDIR].dl_min;
     double area = 4 * CONST_PI * radius * radius;
-    npoints = (int) (area / (dl_min * dl_min));
+    double oversample = 100;
+    npoints = (int) (area / (dl_min * dl_min) * oversample);
 
     // TODO: make once only - no need to recreate same points every timestep.
     /* Get npoint points on spherical surface */
