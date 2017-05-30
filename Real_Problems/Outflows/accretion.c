@@ -42,6 +42,12 @@ void SetAccretionPhysics() {
     /* Global accretion rate */
     ac.accr_rate_sel = 0;
     ac.accr_rate_rss = 0;
+    ac.accr_rate_sel_30 = 0;
+    ac.accr_rate_rss_30 = 0;
+    ac.accr_rate_sel_35 = 0;
+    ac.accr_rate_rss_35 = 0;
+    ac.accr_rate_sel_40 = 0;
+    ac.accr_rate_rss_40 = 0;
 
     /* Area of accretion surface. */
     ac.area = 4 * CONST_PI * ac.rad * ac.rad;
@@ -136,6 +142,15 @@ void SphericalAccretion(const Data *d, Grid *grid) {
     ac.accr_rate_rss = SphericalSampledAccretion(d, grid, ac.rad);
     ac.accr_rate_sel = SphericalSelectedAccretion(d, grid, ac.rad);
 
+    ac.accr_rate_rss_30 = SphericalSampledAccretion(d, grid, 0.30);
+    ac.accr_rate_sel_30 = SphericalSelectedAccretion(d, grid, 0.30);
+
+    ac.accr_rate_rss_35 = SphericalSampledAccretion(d, grid, 0.35);
+    ac.accr_rate_sel_35 = SphericalSelectedAccretion(d, grid, 0.35);
+
+    ac.accr_rate_rss_40 = SphericalSampledAccretion(d, grid, 0.40);
+    ac.accr_rate_sel_40 = SphericalSelectedAccretion(d, grid, 0.40);
+
 
     /* Increase BH mass by measured accretion rate * dt */
     ac.mbh += ac.accr_rate_rss * g_dt * (1. - ac.eff);
@@ -166,7 +181,9 @@ void TotalMass(const Data *d, Grid *grid) {
  ************************************************** */
 
     int i, j, k;
-    double dV, rho, tr2, Mtot, Mwarm, Mhot;
+    double dV, rho, tr2;
+    double Mtot, Mwarm, Mhot;
+    double Mtot_a, Mwarm_a, Mhot_a;
     double *dV1, *dV2, *dV3;
 
     /* ---- Set pointer shortcuts ---- */
@@ -188,7 +205,9 @@ void TotalMass(const Data *d, Grid *grid) {
     /* ---- Parallel data reduction ---- */
 
     #ifdef PARALLEL
-    MPI_Allreduce (&Mtot, &rho, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce (&Mtot, &Mtot_a, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce (&Mwarm, &Mwarm_a, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce (&Mhot, &Mhot_a, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     #endif
 
     /* ---- Write ascii file "totalmass.dat" to disk ---- */
@@ -509,7 +528,7 @@ void FederrathAccretion(const Data *d, Grid *grid) {
     int i, j, k;
     double *x1, *x2, *x3;
     double *dV1, *dV2, *dV3;
-    double accr, accr_rate = 0;
+    double accr, accr_rate = 0, accr_rate_sel;
     double result[NVAR];
 
     // TODO: The SphereIntersectsDomain, probably not necessary.
@@ -538,9 +557,9 @@ void FederrathAccretion(const Data *d, Grid *grid) {
     /* MPI reductions and analysis */
 
 #ifdef PARALLEL
-        MPI_Allreduce(&accr_rate, &ac.accr_rate_sel, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&accr_rate, &accr_rate_sel, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 #else
-        ac.accr_rate = accr_rate;
+        accr_rate_sel = accr_rate;
 #endif
 
     /* Increase BH mass by measured accretion rate * dt */
@@ -601,15 +620,30 @@ void SphericalAccretionOutput() {
         if (g_time > next_output) {
 
             /* Accretion rate in cgs */
-            double accr_rate_msun_yr = ac.accr_rate_sel * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_sel_msun_yr = ac.accr_rate_sel * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
             double accr_rate_rss_msun_yr = ac.accr_rate_rss * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
+            double accr_rate_sel_30_msun_yr = ac.accr_rate_sel_30 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_30_msun_yr = ac.accr_rate_rss_30 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
-            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
+            double accr_rate_sel_35_msun_yr = ac.accr_rate_sel_35 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_35_msun_yr = ac.accr_rate_rss_35 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+
+            double accr_rate_sel_40_msun_yr = ac.accr_rate_sel_40 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_40_msun_yr = ac.accr_rate_rss_40 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+
+
+            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
                     g_time * vn.t_norm / (CONST_ly / CONST_c),            // time
                     g_dt * vn.t_norm / (CONST_ly / CONST_c),              // dt
-                    accr_rate_msun_yr,                                    // measured acc rate
+                    accr_rate_sel_msun_yr,                                    // measured acc rate
                     accr_rate_rss_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_30_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_30_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_35_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_35_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_40_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_40_msun_yr,                                // measured acc rate from rand sph smpl
                     ac.accr_rate_sel * vn.mdot_norm * CONST_c * CONST_c,      // measured acc power
                     ac.mbh * vn.m_norm / CONST_Msun,                      // black hole mass
                     ac.edd * vn.power_norm);                              // Eddington power
