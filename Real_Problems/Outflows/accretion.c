@@ -184,9 +184,14 @@ void TotalMass(const Data *d, Grid *grid) {
     double dV, rho, tr2;
     double Mtot, Mwarm, Mhot;
     double Mtot_a, Mwarm_a, Mhot_a;
+    double *x1, *x2, *x3;
     double *dV1, *dV2, *dV3;
 
     /* ---- Set pointer shortcuts ---- */
+
+    x1 = grid[IDIR].x;
+    x2 = grid[JDIR].x;
+    x3 = grid[KDIR].x;
 
     dV1 = grid[IDIR].dV;
     dV2 = grid[JDIR].dV;
@@ -195,12 +200,14 @@ void TotalMass(const Data *d, Grid *grid) {
     /* ---- Main loop ---- */
 
     DOM_LOOP(k,j,i) {
-                dV = dV1[i] * dV2[j] * dV3[k];  /* Cell volume */
-                rho = d->Vc[RHO][k][j][i];
-                tr2 = d->Vc[TRC+1][k][j][i];
-                Mtot += rho * dV; /* Cell total mass */
-                Mwarm += tr2 * rho * dV; /* Cell warm mass */
-                Mhot += (1 - tr2) * rho * dV; /* Cell hot mass */
+                if (!InSinkRegion(x1[i], x2[j], x3[k])) {
+                    dV = dV1[i] * dV2[j] * dV3[k];  /* Cell volume */
+                    rho = d->Vc[RHO][k][j][i];
+                    tr2 = d->Vc[TRC + 1][k][j][i];
+                    Mtot += rho * dV; /* Cell total mass */
+                    Mwarm += tr2 * rho * dV; /* Cell warm mass */
+                    Mhot += (1 - tr2) * rho * dV; /* Cell hot mass */
+                }
             }
     /* ---- Parallel data reduction ---- */
 
@@ -208,38 +215,63 @@ void TotalMass(const Data *d, Grid *grid) {
     MPI_Allreduce (&Mtot, &Mtot_a, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce (&Mwarm, &Mwarm_a, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce (&Mhot, &Mhot_a, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    #else
+    Mtot_a = Mtot;
+    Mwarm_a = Mwarm;
+    Mhot_a = Mhot;
     #endif
 
     /* ---- Write ascii file "totalmass.dat" to disk ---- */
-    if (prank == 0){
-        char  fname[512];
-        static double tpos = -1.0;
+    if (prank == 0) {
+
+        char *dir, fname[512];
         FILE *fp;
-        sprintf (fname, "%s/totalmass.dat",RuntimeGet()->output_dir);
-        if (g_stepNumber == 0){  /* Open for writing only when we’re starting */
-            fp = fopen(fname,"w"); /*   from beginning */
+        static double next_output = -1;
+
+        // TODO: complete this (if necessary)
+//        dir = GetOutputDir();
+//        sprintf(fname, "%s/accretion_rate.dat", dir);
+        sprintf(fname, "totalmass.dat");
+
+        /* Open file if first timestep (but not restart).
+         * We always write out the first timestep. */
+        if (g_stepNumber == 0) {
+            fp = fopen(fname, "w");
             fprintf (fp,"# %7s  %12s  %12s  %12s\n", "t", "Mtot", "Mwarm", "Mhot");
-        }else{              /* Append if this is not step 0  */
-            if (tpos < 0.0){  /* Obtain time coordinate of to last written row */
-                char   sline[512];
-                fp = fopen(fname,"r");
-                while (fgets(sline, 512, fp)) {}
-                sscanf(sline, "%lf\n",&tpos); /* tpos = time of the last written row */
+        }
+
+            /* Prepare for restart or append if this is not step 0  */
+        else {
+
+            /* In case of restart, get last timestamp
+             * and determine next timestamp */
+            if (next_output < 0.0) {
+                char sline[512];
+                fp = fopen(fname, "r");
+                while (fgets(sline, 512, fp)) { }
+                sscanf(sline, "%lf\n", &next_output);
+                next_output += ACCRETION_OUTPUT_RATE + 1;
                 fclose(fp);
             }
-            fp = fopen(fname,"a");
+
+            /* Append if next output step has been reached */
+            if (g_time > next_output) fp = fopen(fname, "a");
+
         }
-        if (g_time > tpos){      /* Write if current time if > tpos */
+
+
+        /* Write data */
+        if (g_time > next_output) {
             fprintf(fp, "%12.6e  %12.6e  %12.6e  %12.6e \n",
                     g_time * vn.t_norm / (CONST_ly / CONST_c),                         // time
-                    Mtot * vn.m_norm / CONST_Msun,                                    // total mass
-                    Mwarm * vn.m_norm / CONST_Msun,                                   // warm mass
-                    Mhot * vn.m_norm / CONST_Msun);                                    // hot mass
+                    Mtot_a * vn.m_norm / CONST_Msun,                                    // total mass
+                    Mwarm_a * vn.m_norm / CONST_Msun,                                   // warm mass
+                    Mhot_a * vn.m_norm / CONST_Msun);                                    // hot mass
 
+            next_output += ACCRETION_OUTPUT_RATE;
+            fclose(fp);
         }
-        fclose(fp);
     }
-
 }
 
 
