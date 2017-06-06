@@ -21,10 +21,10 @@
 #define CLOUDS_MULTI   	                  NO
 
 #define CLOUD_DENSITY                     CD_KEPLERIAN
-#define CLOUD_VELOCITY                    NONE
+#define CLOUD_VELOCITY                    CV_KEPLERIAN
 #define CLOUD_SCALE                       CS_VELOCITY_DISPERSION
 #define CLOUD_EXTRACT_ELLIPSOID           FALSE
-#define CLOUD_EXTRACT_CENTRAL_BUFFER      FALSE
+#define CLOUD_EXTRACT_CENTRAL_BUFFER      TRUE
 
 #define COORDINATE_SYSTEM_DEBUG           FALSE
 

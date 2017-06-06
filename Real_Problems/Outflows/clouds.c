@@ -294,7 +294,7 @@ double CloudExtractCentralBuffer(double fdratio, const double x1, const double x
 **************************************************************** */
 
     /* Buffer factor around osph */
-    double incf = 1.5;
+    double incf = 2.0;
     double rad  = SPH1(x1, x2, x3);
 
     /* Inner hemisphere to keep free */

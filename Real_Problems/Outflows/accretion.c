@@ -42,12 +42,14 @@ void SetAccretionPhysics() {
     /* Global accretion rate */
     ac.accr_rate_sel = 0;
     ac.accr_rate_rss = 0;
+    ac.accr_rate_sel_28 = 0;
+    ac.accr_rate_rss_28 = 0;
+    ac.accr_rate_sel_29 = 0;
+    ac.accr_rate_rss_29 = 0;
     ac.accr_rate_sel_30 = 0;
     ac.accr_rate_rss_30 = 0;
     ac.accr_rate_sel_35 = 0;
     ac.accr_rate_rss_35 = 0;
-    ac.accr_rate_sel_40 = 0;
-    ac.accr_rate_rss_40 = 0;
 
     /* Area of accretion surface. */
     ac.area = 4 * CONST_PI * ac.rad * ac.rad;
@@ -142,15 +144,17 @@ void SphericalAccretion(const Data *d, Grid *grid) {
     ac.accr_rate_rss = SphericalSampledAccretion(d, grid, ac.rad);
     ac.accr_rate_sel = SphericalSelectedAccretion(d, grid, ac.rad);
 
+    ac.accr_rate_rss_28 = SphericalSampledAccretion(d, grid, 0.28);
+    ac.accr_rate_sel_28 = SphericalSelectedAccretion(d, grid, 0.28);
+
+    ac.accr_rate_rss_29 = SphericalSampledAccretion(d, grid, 0.29);
+    ac.accr_rate_sel_29 = SphericalSelectedAccretion(d, grid, 0.29);
+
     ac.accr_rate_rss_30 = SphericalSampledAccretion(d, grid, 0.30);
     ac.accr_rate_sel_30 = SphericalSelectedAccretion(d, grid, 0.30);
 
     ac.accr_rate_rss_35 = SphericalSampledAccretion(d, grid, 0.35);
     ac.accr_rate_sel_35 = SphericalSelectedAccretion(d, grid, 0.35);
-
-    ac.accr_rate_rss_40 = SphericalSampledAccretion(d, grid, 0.40);
-    ac.accr_rate_sel_40 = SphericalSelectedAccretion(d, grid, 0.40);
-
 
     /* Increase BH mass by measured accretion rate * dt */
     ac.mbh += ac.accr_rate_rss * g_dt * (1. - ac.eff);
@@ -654,30 +658,37 @@ void SphericalAccretionOutput() {
             double accr_rate_sel_msun_yr = ac.accr_rate_sel * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
             double accr_rate_rss_msun_yr = ac.accr_rate_rss * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
+            double accr_rate_sel_28_msun_yr = ac.accr_rate_sel_28 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_28_msun_yr = ac.accr_rate_rss_28 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+
+            double accr_rate_sel_29_msun_yr = ac.accr_rate_sel_29 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_29_msun_yr = ac.accr_rate_rss_29 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+
             double accr_rate_sel_30_msun_yr = ac.accr_rate_sel_30 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
             double accr_rate_rss_30_msun_yr = ac.accr_rate_rss_30 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
             double accr_rate_sel_35_msun_yr = ac.accr_rate_sel_35 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
             double accr_rate_rss_35_msun_yr = ac.accr_rate_rss_35 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
-            double accr_rate_sel_40_msun_yr = ac.accr_rate_sel_40 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
-            double accr_rate_rss_40_msun_yr = ac.accr_rate_rss_40 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
-
-            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
+            fprintf(fp_acc, "%12.6e  %12.6e  %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
                     g_time * vn.t_norm / (CONST_ly / CONST_c),            // time
                     g_dt * vn.t_norm / (CONST_ly / CONST_c),              // dt
                     accr_rate_sel_msun_yr,                                    // measured acc rate
                     accr_rate_rss_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_28_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_28_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_29_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_29_msun_yr,                                // measured acc rate from rand sph smpl
                     accr_rate_sel_30_msun_yr,                                    // measured acc rate
                     accr_rate_rss_30_msun_yr,                                // measured acc rate from rand sph smpl
                     accr_rate_sel_35_msun_yr,                                    // measured acc rate
                     accr_rate_rss_35_msun_yr,                                // measured acc rate from rand sph smpl
-                    accr_rate_sel_40_msun_yr,                                    // measured acc rate
-                    accr_rate_rss_40_msun_yr,                                // measured acc rate from rand sph smpl
-                    ac.accr_rate_sel * vn.mdot_norm * CONST_c * CONST_c,      // measured acc power
+//                    ac.accr_rate_sel * vn.mdot_norm * CONST_c * CONST_c,      // measured acc power
+                    ac.accr_rate_rss * vn.mdot_norm * CONST_c * CONST_c,      // measured acc power
                     ac.mbh * vn.m_norm / CONST_Msun,                      // black hole mass
-                    ac.edd * vn.power_norm);                              // Eddington power
+                    ac.edd * vn.power_norm,                              // Eddington power
+                    ac.accr_rate_rss * vn.mdot_norm * CONST_c * CONST_c / ac.edd / vn.power_norm);      // Eddington ratio
 
             next_output += ACCRETION_OUTPUT_RATE;
             fclose(fp_acc);
