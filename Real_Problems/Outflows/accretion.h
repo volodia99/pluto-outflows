@@ -14,6 +14,7 @@ typedef struct {
     double mbh;               // BH mass
     double edd;               // Eddington power
     double eff;               // Fraction of accretion rate going into outflow
+    double mld;               // Mass loading efficiency
     double snk;               // Sink radius
     double area;              // Area of surface
     double accr_rate_sel;     // Mass accretion rate, cell selection method
@@ -54,6 +55,8 @@ double BondiAccretionRate(const double mbh, const double rho_far, const double s
 double BondiAccretionRateLocal(const double mbh, const double rho_acc, const double snd_acc, const double snd_far);
 
 double BondiLambda();
+
+double BondiRadius(double m, double *v);
 
 void BondiFlowInternalBoundary(const double x1, const double x2, const double x3, double *result);
 

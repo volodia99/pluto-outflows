@@ -206,6 +206,11 @@
 #ifndef MEASURE_BONDI_ACCRETION
 #define MEASURE_BONDI_ACCRETION  NO
 #endif
+
+#ifndef TURBULENT_BONDI_ACCRETION
+#define TURBULENT_BONDI_ACCRETION  NO
+#endif
+
 #if SINK_METHOD == SINK_BONDI
 #define MEASURE_BONDI_ACCRETION  YES
 #endif
@@ -226,6 +231,10 @@
 #endif
 
 /* Feedback cycle modes */
+
+#ifndef FBC_DEBOOST
+#define FBC_DEBOOST FALSE
+#endif
 
 #ifndef FBC_DEBOOST_MODE
 #define FBC_DEBOOST_MODE FBC_DEBOOST_MODE_1
