@@ -19,12 +19,12 @@ typedef struct {
     double area;              // Area of surface
     double accr_rate_sel;     // Mass accretion rate, cell selection method
     double accr_rate_rss;     // Mass accretion rate, random spherical sampling
-    double accr_rate_sel_28;     // Mass accretion rate, cell selection method
-    double accr_rate_rss_28;     // Mass accretion rate, random spherical sampling
-    double accr_rate_sel_29;     // Mass accretion rate, cell selection method
-    double accr_rate_rss_29;     // Mass accretion rate, random spherical sampling
-    double accr_rate_sel_30;     // Mass accretion rate, cell selection method
-    double accr_rate_rss_30;     // Mass accretion rate, random spherical sampling
+    double accr_rate_sel_13;     // Mass accretion rate, cell selection method
+    double accr_rate_rss_13;     // Mass accretion rate, random spherical sampling
+    double accr_rate_sel_15;     // Mass accretion rate, cell selection method
+    double accr_rate_rss_15;     // Mass accretion rate, random spherical sampling
+    double accr_rate_sel_20;     // Mass accretion rate, cell selection method
+    double accr_rate_rss_20;     // Mass accretion rate, random spherical sampling
     double accr_rate_sel_35;     // Mass accretion rate, cell selection method
     double accr_rate_rss_35;     // Mass accretion rate, random spherical sampling
     double accr_rate_bondi;   // Bondi accretion rate

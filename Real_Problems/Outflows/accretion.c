@@ -33,7 +33,7 @@ void SetAccretionPhysics() {
     ac.rad = g_inputParam[PAR_ARAD] * ini_code[PAR_ARAD];
     ac.mbh = g_inputParam[PAR_AMBH] * ini_code[PAR_AMBH];
     ac.eff = g_inputParam[PAR_AEFF] * ini_code[PAR_AEFF];
-    ac.eff = g_inputParam[PAR_AMLD] * ini_code[PAR_AMLD];
+    ac.mld = g_inputParam[PAR_AMLD] * ini_code[PAR_AMLD];
     ac.snk = g_inputParam[PAR_ASNK] * ini_code[PAR_ASNK];
 
     /* Bondi Accretion parameters */
@@ -46,12 +46,12 @@ void SetAccretionPhysics() {
     /* Global accretion rate */
     ac.accr_rate_sel = 0;
     ac.accr_rate_rss = 0;
-    ac.accr_rate_sel_28 = 0;
-    ac.accr_rate_rss_28 = 0;
-    ac.accr_rate_sel_29 = 0;
-    ac.accr_rate_rss_29 = 0;
-    ac.accr_rate_sel_30 = 0;
-    ac.accr_rate_rss_30 = 0;
+    ac.accr_rate_sel_13 = 0;
+    ac.accr_rate_rss_13 = 0;
+    ac.accr_rate_sel_15 = 0;
+    ac.accr_rate_rss_15 = 0;
+    ac.accr_rate_sel_20 = 0;
+    ac.accr_rate_rss_20 = 0;
     ac.accr_rate_sel_35 = 0;
     ac.accr_rate_rss_35 = 0;
 
@@ -148,14 +148,14 @@ void SphericalAccretion(const Data *d, Grid *grid) {
     ac.accr_rate_rss = SphericalSampledAccretion(d, grid, ac.rad);
     ac.accr_rate_sel = SphericalSelectedAccretion(d, grid, ac.rad);
 
-    ac.accr_rate_rss_28 = SphericalSampledAccretion(d, grid, 0.28);
-    ac.accr_rate_sel_28 = SphericalSelectedAccretion(d, grid, 0.28);
+    ac.accr_rate_rss_13 = SphericalSampledAccretion(d, grid, 0.13);
+    ac.accr_rate_sel_13 = SphericalSelectedAccretion(d, grid, 0.13);
 
-    ac.accr_rate_rss_29 = SphericalSampledAccretion(d, grid, 0.29);
-    ac.accr_rate_sel_29 = SphericalSelectedAccretion(d, grid, 0.29);
+    ac.accr_rate_rss_15 = SphericalSampledAccretion(d, grid, 0.15);
+    ac.accr_rate_sel_15 = SphericalSelectedAccretion(d, grid, 0.15);
 
-    ac.accr_rate_rss_30 = SphericalSampledAccretion(d, grid, 0.30);
-    ac.accr_rate_sel_30 = SphericalSelectedAccretion(d, grid, 0.30);
+    ac.accr_rate_rss_20 = SphericalSampledAccretion(d, grid, 0.20);
+    ac.accr_rate_sel_20 = SphericalSelectedAccretion(d, grid, 0.20);
 
     ac.accr_rate_rss_35 = SphericalSampledAccretion(d, grid, 0.35);
     ac.accr_rate_sel_35 = SphericalSelectedAccretion(d, grid, 0.35);
@@ -568,14 +568,14 @@ void SphericalAccretionOutput() {
             double accr_rate_sel_msun_yr = ac.accr_rate_sel * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
             double accr_rate_rss_msun_yr = ac.accr_rate_rss * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
-            double accr_rate_sel_28_msun_yr = ac.accr_rate_sel_28 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
-            double accr_rate_rss_28_msun_yr = ac.accr_rate_rss_28 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_sel_13_msun_yr = ac.accr_rate_sel_13 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_13_msun_yr = ac.accr_rate_rss_13 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
-            double accr_rate_sel_29_msun_yr = ac.accr_rate_sel_29 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
-            double accr_rate_rss_29_msun_yr = ac.accr_rate_rss_29 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_sel_15_msun_yr = ac.accr_rate_sel_15 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_15_msun_yr = ac.accr_rate_rss_15 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
-            double accr_rate_sel_30_msun_yr = ac.accr_rate_sel_30 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
-            double accr_rate_rss_30_msun_yr = ac.accr_rate_rss_30 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_sel_20_msun_yr = ac.accr_rate_sel_20 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
+            double accr_rate_rss_20_msun_yr = ac.accr_rate_rss_20 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
             double accr_rate_sel_35_msun_yr = ac.accr_rate_sel_35 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
             double accr_rate_rss_35_msun_yr = ac.accr_rate_rss_35 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
@@ -586,12 +586,12 @@ void SphericalAccretionOutput() {
                     g_dt * vn.t_norm / (CONST_ly / CONST_c),              // dt
                     accr_rate_sel_msun_yr,                                    // measured acc rate
                     accr_rate_rss_msun_yr,                                // measured acc rate from rand sph smpl
-                    accr_rate_sel_28_msun_yr,                                    // measured acc rate
-                    accr_rate_rss_28_msun_yr,                                // measured acc rate from rand sph smpl
-                    accr_rate_sel_29_msun_yr,                                    // measured acc rate
-                    accr_rate_rss_29_msun_yr,                                // measured acc rate from rand sph smpl
-                    accr_rate_sel_30_msun_yr,                                    // measured acc rate
-                    accr_rate_rss_30_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_13_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_13_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_15_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_15_msun_yr,                                // measured acc rate from rand sph smpl
+                    accr_rate_sel_20_msun_yr,                                    // measured acc rate
+                    accr_rate_rss_20_msun_yr,                                // measured acc rate from rand sph smpl
                     accr_rate_sel_35_msun_yr,                                    // measured acc rate
                     accr_rate_rss_35_msun_yr,                                // measured acc rate from rand sph smpl
 //                    ac.accr_rate_sel * vn.mdot_norm * CONST_c * CONST_c,      // measured acc power

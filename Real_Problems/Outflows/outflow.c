@@ -265,7 +265,7 @@ void SetJetState(OutflowState *ofs) {
     double oeff = g_inputParam[PAR_OEFF] * ini_code[PAR_OEFF];
 
     /* AGN power from accretion rate */
-    power = (1. - ac.eff) / (1. + ac.mld) * oeff * ac.eff * ac.accr_rate * CONST_c * CONST_c / vn.pot_norm;
+    power = (1. - ac.eff) / (1. + ac.mld) * oeff * ac.eff * ac.accr_rate_rss * CONST_c * CONST_c / vn.pot_norm;
 
     /* Hot phase pressure */
     double hrho = g_inputParam[PAR_HRHO] * ini_code[PAR_HRHO];
@@ -408,10 +408,10 @@ void SetUfoState(OutflowState *ofs) {
     double oeff = g_inputParam[PAR_OEFF] * ini_code[PAR_OEFF];
 
     /* AGN power from accretion rate */
-    power = (1. - ac.eff) / (1. + ac.mld) * oeff * ac.eff * ac.accr_rate * CONST_c * CONST_c / vn.pot_norm;
+    power = (1. - ac.eff) / (1. + ac.mld) * oeff * ac.eff * ac.accr_rate_rss * CONST_c * CONST_c / vn.pot_norm;
 
     /* Mass outflow rate from accretion rate */
-    mdot = ac.accr_rate * g_dt * (1. - ac.eff) / (1. + ac.mld) * ac.mld;
+    mdot = ac.accr_rate_rss * g_dt * (1. - ac.eff) / (1. + ac.mld) * ac.mld;
 
     /* Maximum speed (if all of the power was in kinetic form) = sqrt(2 * power / mdot). */
     double vmax = (2. * oeff * ac.eff / ac.mld) * CONST_c / vn.v_norm;
