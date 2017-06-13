@@ -505,7 +505,7 @@ void FederrathAccretion(const Data *d, Grid *grid) {
     /* MPI reductions and analysis */
 
 #ifdef PARALLEL
-        MPI_Allreduce(&accr_rate, &ac.accr_rate, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(&accr_rate, &ac.accr_rate_sel, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 #else
         ac.accr_rate_sel = accr_rate;
 #endif
