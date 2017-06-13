@@ -573,6 +573,70 @@ void SetUfoState(OutflowState *ofs) {
 
 }
 
+/*********************************************************************** */
+void OutflowStateOutput() {
+/*!
+ * Perform output of Outflow State os parameters
+ *
+ *********************************************************************** */
+
+    if (prank == 0) {
+
+        char fname[512];
+        FILE *fp_os;
+        static double next_output = -1;
+
+        sprintf(fname, "outflow_state.dat");
+
+        /* Open file if first timestep (but not restart).
+         * We always write out the first timestep. */
+        if (g_stepNumber == 0) {
+            fp_os = fopen(fname, "w");
+        }
+
+            /* Prepare for restart or append if this is not step 0  */
+        else {
+
+            /* In case of restart, get last timestamp
+             * and determine next timestamp */
+            if (next_output < 0.0) {
+                char sline[512];
+                fp_os = fopen(fname, "r");
+                while (fgets(sline, 512, fp_os)) { }
+                sscanf(sline, "%lf\n", &next_output);
+                fclose(fp_os);
+            }
+
+            /* Append if next output step has been reached */
+            if (g_time > next_output) fp_os = fopen(fname, "a");
+
+        }
+
+
+        /* Write data */
+        if (g_time > next_output) {
+
+            fprintf(fp_os, "%12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %d \n",
+                    g_time * vn.t_norm / (CONST_ly / CONST_c),            // time
+                    g_dt * vn.t_norm / (CONST_ly / CONST_c),              // dt
+                    nz.rad,
+                    os.pow,
+                    os.mdt,
+                    os.spd,
+                    os.prs,
+                    os.rho,
+                    os.eth,
+                    os.kin,
+                    os.is_on);
+
+            fclose(fp_os);
+
+        }
+
+    }
+}
+
+
 
 /* ************************************************ */
 void NozzleFill(const Data *d, const Grid *grid) {

@@ -343,6 +343,7 @@ void UserDefBoundary (const Data *d, RBox *box, int side, Grid *grid)
 #if FEEDBACK_CYCLE == YES
             SetOutflowState(&os);
             SetNozzleGeometry(&nz);
+            OutflowStateOutput();
 
 #endif
 

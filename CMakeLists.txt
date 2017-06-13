@@ -103,7 +103,7 @@ if (PROBLEM STREQUAL Outflows)
 
 #     TODO: Automate necessary file link to run simulations
     # Executable output location
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/gaylor/Desktop/PLUTO/Lab/cart/sph39_cycle)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/gaylor/Desktop/PLUTO/Lab/cart/sph45_cycle_32_osoutput)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUTO_SOURCE_DIR}/Lab/Accretion)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /home/wagner/test_output)
 #    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /Users/ayw/lab/AGN_Feedback/IC5063)

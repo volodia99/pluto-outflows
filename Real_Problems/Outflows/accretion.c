@@ -582,7 +582,7 @@ void SphericalAccretionOutput() {
             double accr_rate_rss_35_msun_yr = ac.accr_rate_rss_35 * vn.mdot_norm / (CONST_Msun / (CONST_ly / CONST_c));
 
 
-            fprintf(fp_acc, "%12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e  %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
+            fprintf(fp_acc, "%12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e %12.6e \n",
                     g_time * vn.t_norm / (CONST_ly / CONST_c),            // time
                     g_dt * vn.t_norm / (CONST_ly / CONST_c),              // dt
                     accr_rate_sel_msun_yr,                                    // measured acc rate
